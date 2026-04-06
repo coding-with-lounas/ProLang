@@ -91,7 +91,7 @@ CHAINE  \"[^\"]*\"
 
 "%%".*           ;   /* commentaire ligne */
 
-"//*"([^*]|\*+[^*/])*\*+"/" ;  /* commentaire bloc */
+"//*"([^*]|\*+[^*/])*\*+"*//" ;  /* commentaire bloc */
 
 
 [ \t]            ;
