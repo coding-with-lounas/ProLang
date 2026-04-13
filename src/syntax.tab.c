@@ -71,12 +71,13 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include "TS.h" 
 
 extern int nb_ligne;
 int yylex();
 void yyerror(const char *s);
 
-#line 80 "syntax.tab.c"
+#line 81 "syntax.tab.c"
 
 # ifndef YY_CAST
 #  ifdef __cplusplus
@@ -565,11 +566,11 @@ static const yytype_int8 yytranslate[] =
 /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    49,    49,    52,    53,    57,    61,    65,    66,    70,
-      71,    72,    73,    77,    78,    82,    83,    87,    88,    92,
-      93,    94,    95,    96,   100,   101,   105,   106,   107,   108,
-     109,   110,   111,   115,   119,   120,   124,   128,   132,   133,
-     134,   135,   136,   137,   138
+       0,    48,    48,    51,    52,    56,    60,    64,    65,    69,
+      70,    71,    72,    76,    77,    81,    82,    86,    87,    91,
+      92,    93,    94,    95,    99,   100,   104,   105,   106,   107,
+     108,   109,   110,   114,   118,   119,   123,   127,   131,   132,
+     133,   134,   135,   136,   137
 };
 #endif
 
@@ -1213,13 +1214,13 @@ yyreduce:
   switch (yyn)
     {
   case 2: /* programme: BEGIN_PROJECT T_IDF SEMI contenu END_PROJECT SEMI  */
-#line 49 "syntax.y"
+#line 48 "syntax.y"
                                                       { printf("Programme compilé avec succès (syntaxe correcte) !\n"); }
-#line 1219 "syntax.tab.c"
+#line 1220 "syntax.tab.c"
     break;
 
 
-#line 1223 "syntax.tab.c"
+#line 1224 "syntax.tab.c"
 
       default: break;
     }
@@ -1412,7 +1413,7 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 141 "syntax.y"
+#line 140 "syntax.y"
 
 
 /* Gestion des erreurs syntaxiques */
@@ -1421,7 +1422,14 @@ void yyerror(const char *s) {
 }
 
 int main(void) {
-    /* Lancer l'analyseur syntaxique */
+    /* 1. Initialiser les 3 tables de symboles */
+    initialization();
+
+    /* 2. Lancer l'analyseur syntaxique */
     yyparse();
+    
+    /* 3. Afficher les 3 tables à la fin de la compilation */
+    afficher();
+    
     return 0;
 }

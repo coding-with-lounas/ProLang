@@ -1,4 +1,4 @@
-flex lexical.l
 bison -d syntax.y
-gcc lex.yy.c syntax.tab.c -o compilateur -lfl
+flex lexical.l
+gcc lex.yy.c syntax.tab.c TS.c -o compilateur -lfl
 ./compilateur < source.txt

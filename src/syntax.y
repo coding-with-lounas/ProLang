@@ -1,6 +1,7 @@
 %{
 #include <stdio.h>
 #include <stdlib.h>
+#include "TS.h" 
 
 extern int nb_ligne;
 int yylex();
@@ -27,7 +28,6 @@ void yyerror(const char *s);
 %token <reel> T_FLOAT
 %token <str> T_IDF T_CHAINE
 
-
 /* Déclaration des priorités (du plus faible au plus fort) */
 %left AND
 %left OR
@@ -35,7 +35,6 @@ void yyerror(const char *s);
 %nonassoc COMP_EQ COMP_NEQ COMP_GT COMP_LT COMP_GE COMP_LE
 %left PLUS MINUS
 %left MULT DIV
-
 
 %start programme
 
@@ -146,7 +145,14 @@ void yyerror(const char *s) {
 }
 
 int main(void) {
-    /* Lancer l'analyseur syntaxique */
+    /* 1. Initialiser les 3 tables de symboles */
+    initialization();
+
+    /* 2. Lancer l'analyseur syntaxique */
     yyparse();
+    
+    /* 3. Afficher les 3 tables à la fin de la compilation */
+    afficher();
+    
     return 0;
 }

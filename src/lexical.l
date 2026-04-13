@@ -1,6 +1,7 @@
 %{
 #include <stdio.h>
-#include "syntax.tab.h" /* IMPORTANT: permet la communication avec syntax.y */
+#include "syntax.tab.h" 
+#include "TS.h" 
 int nb_ligne=1;
 %}
 
@@ -11,82 +12,86 @@ CHAINE  \"[^\"]*\"
 
 %%
 
-"BeginProject"   { return BEGIN_PROJECT; }
-"EndProject"     { return END_PROJECT; }
-"Setup"          { return SETUP; }
-"Run"            { return RUN; }
+"BeginProject"   { rechercher(yytext, "Mot cle", "", "", 2); return BEGIN_PROJECT; }
+"EndProject"     { rechercher(yytext, "Mot cle", "", "", 2); return END_PROJECT; }
+"Setup"          { rechercher(yytext, "Mot cle", "", "", 2); return SETUP; }
+"Run"            { rechercher(yytext, "Mot cle", "", "", 2); return RUN; }
 
-"define"         { return DEFINE; }
-"const"          { return CONST; }
-"integer"        { return INTEGER; }
-"float"          { return FLOAT; }
+"define"         { rechercher(yytext, "Mot cle", "", "", 2); return DEFINE; }
+"const"          { rechercher(yytext, "Mot cle", "", "", 2); return CONST; }
+"integer"        { rechercher(yytext, "Mot cle", "", "", 2); return INTEGER; }
+"float"          { rechercher(yytext, "Mot cle", "", "", 2); return FLOAT; }
 
-"if"             { return IF; }
-"then"           { return THEN; }
-"else"           { return ELSE; }
-"endIf"          { return ENDIF; }
+"if"             { rechercher(yytext, "Mot cle", "", "", 2); return IF; }
+"then"           { rechercher(yytext, "Mot cle", "", "", 2); return THEN; }
+"else"           { rechercher(yytext, "Mot cle", "", "", 2); return ELSE; }
+"endIf"          { rechercher(yytext, "Mot cle", "", "", 2); return ENDIF; }
 
-"loop"           { return LOOP; }
-"while"          { return WHILE; }
-"endloop"        { return ENDLOOP; }
-"for"            { return FOR; }
-"in"             { return IN; }
-"to"             { return TO; }
-"endfor"         { return ENDFOR; }
+"loop"           { rechercher(yytext, "Mot cle", "", "", 2); return LOOP; }
+"while"          { rechercher(yytext, "Mot cle", "", "", 2); return WHILE; }
+"endloop"        { rechercher(yytext, "Mot cle", "", "", 2); return ENDLOOP; }
+"for"            { rechercher(yytext, "Mot cle", "", "", 2); return FOR; }
+"in"             { rechercher(yytext, "Mot cle", "", "", 2); return IN; }
+"to"             { rechercher(yytext, "Mot cle", "", "", 2); return TO; }
+"endfor"         { rechercher(yytext, "Mot cle", "", "", 2); return ENDFOR; }
 
-"out"            { return OUT; }
+"out"            { rechercher(yytext, "Mot cle", "", "", 2); return OUT; }
 
-"AND"            { return AND; }
-"OR"             { return OR; }
-"NON"            { return NON; }
+"AND"            { rechercher(yytext, "Mot cle", "", "", 2); return AND; }
+"OR"             { rechercher(yytext, "Mot cle", "", "", 2); return OR; }
+"NON"            { rechercher(yytext, "Mot cle", "", "", 2); return NON; }
 
-"<-"             { return COMP_AFFECT; }
-">="             { return COMP_GE; }
-"="              { return EXPECT; }
-"<="             { return COMP_LE; }
-"=="             { return COMP_EQ; }
-"!="             { return COMP_NEQ; }
-">"              { return COMP_GT; }
-"<"              { return COMP_LT; }
+"<-"             { rechercher(yytext, "Separateur", "", "", 3); return COMP_AFFECT; }
+">="             { rechercher(yytext, "Separateur", "", "", 3); return COMP_GE; }
+"="              { rechercher(yytext, "Separateur", "", "", 3); return EXPECT; }
+"<="             { rechercher(yytext, "Separateur", "", "", 3); return COMP_LE; }
+"=="             { rechercher(yytext, "Separateur", "", "", 3); return COMP_EQ; }
+"!="             { rechercher(yytext, "Separateur", "", "", 3); return COMP_NEQ; }
+">"              { rechercher(yytext, "Separateur", "", "", 3); return COMP_GT; }
+"<"              { rechercher(yytext, "Separateur", "", "", 3); return COMP_LT; }
 
-"+"              { return PLUS; }
-"-"              { return MINUS; }
-"*"              { return MULT; }
-"/"              { return DIV; }
+"+"              { rechercher(yytext, "Separateur", "", "", 3); return PLUS; }
+"-"              { rechercher(yytext, "Separateur", "", "", 3); return MINUS; }
+"*"              { rechercher(yytext, "Separateur", "", "", 3); return MULT; }
+"/"              { rechercher(yytext, "Separateur", "", "", 3); return DIV; }
 
-";"              { return SEMI; }
-":"              { return COLON; }
-","              { return COMMA; }
-"|"              { return PIPE; }
+";"              { rechercher(yytext, "Separateur", "", "", 3); return SEMI; }
+":"              { rechercher(yytext, "Separateur", "", "", 3); return COLON; }
+","              { rechercher(yytext, "Separateur", "", "", 3); return COMMA; }
+"|"              { rechercher(yytext, "Separateur", "", "", 3); return PIPE; }
 
-"("              { return LPAREN; }
-")"              { return RPAREN; }
-"{"              { return LBRACE; }
-"}"              { return RBRACE; }
-"["              { return LBRACKET; }
-"]"              { return RBRACKET; }
+"("              { rechercher(yytext, "Separateur", "", "", 3); return LPAREN; }
+")"              { rechercher(yytext, "Separateur", "", "", 3); return RPAREN; }
+"{"              { rechercher(yytext, "Separateur", "", "", 3); return LBRACE; }
+"}"              { rechercher(yytext, "Separateur", "", "", 3); return RBRACE; }
+"["              { rechercher(yytext, "Separateur", "", "", 3); return LBRACKET; }
+"]"              { rechercher(yytext, "Separateur", "", "", 3); return RBRACKET; }
 
 {FLOAT} {
    yylval.reel = atof(yytext);
+   rechercher(yytext, "Cst float", "", yytext, 1); 
    return T_FLOAT;
 }
 
 {ENTIER} {
    yylval.entier = atoi(yytext);
+   rechercher(yytext, "Cst entiere", "", yytext, 1);
    return T_ENTIER;
 }
 
 {IDF} {
    yylval.str = strdup(yytext);
+   rechercher(yytext, "IDF", "", "", 1); 
    return T_IDF;
 }
 
 {CHAINE}  { 
-            yylval.str = strdup(yytext);
-             return T_CHAINE; 
-             }
+    yylval.str = strdup(yytext);
+    rechercher(yytext, "Chaine", "", yytext, 1);
+    return T_CHAINE; 
+}
 
-"%%".*           { /* commentaire ligne */ }
+"%%".* { /* commentaire ligne */ }
 "/*"([^*]|\*+[^*/])*\*+"/"   { /* commentaire bloc */ }
 
 [ \t\r]+         { /* ignorer espaces et tabulations */ }
