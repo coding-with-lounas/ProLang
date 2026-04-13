@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "TS.h" 
+#include "quad.h" /* <-- AJOUT: Inclusion des quadruplets */
 
 extern int nb_ligne;
 extern int col;
@@ -14,6 +15,9 @@ char sauvType[20];
 char idf_tab[50][30]; /* Tableau pour stocker "a | b | c" avant de savoir le type */
 int nb_idfs = 0;
 
+/* Variables pour les quadruplets du IF */
+int Fin_if = 0, deb_else = 0;
+char tmp[20];
 %}
 
 %union {
@@ -147,11 +151,15 @@ instructions:
 /* ================================================================= */
 instruction:
     T_IDF COMP_AFFECT expression SEMI {
+        /* Sémantique */
         if (!est_declare($1)) {
             printf("Erreur Semantique, ligne %d, colonne %d : Variable '%s' non declaree\n", nb_ligne, col, $1);
         } else if (est_constante($1)) {
             printf("Erreur Semantique, ligne %d, colonne %d : Modification de la constante '%s' interdite\n", nb_ligne, col, $1);
         }
+        
+        /* Génération du Quadruplet d'affectation */
+        quadr("<-", "valeur_expr", "vide", $1); 
     }
     | construct_if
     | construct_while
@@ -189,8 +197,33 @@ expression:
     | expression DIV expression
 ;
 
+/* --- RÈGLES ÉCLATÉES POUR LE IF-THEN-ELSE --- */
+
+/* Règle R3 finale : Met à jour le BR (Saut inconditionnel) de la fin du THEN */
 construct_if:
-    IF LPAREN condition RPAREN THEN COLON LBRACE instructions RBRACE else_block ENDIF SEMI
+    B_if else_block ENDIF SEMI {
+        sprintf(tmp, "%d", qc);
+        updateQuad(Fin_if, 1, tmp);
+    }
+;
+
+/* Règle R2 : Fin du bloc THEN. On génère le BR pour sauter le ELSE, et on met à jour le BZ du IF */
+B_if:
+    A_if instructions RBRACE {
+        Fin_if = qc;
+        quadr("BR", "", "vide", "vide");
+        
+        sprintf(tmp, "%d", qc);
+        updateQuad(deb_else, 1, tmp);
+    }
+;
+
+/* Règle R1 : Évaluation de la condition. On génère le BZ (Saut si Zéro/Faux) vers le ELSE */
+A_if:
+    IF LPAREN condition RPAREN THEN COLON LBRACE {
+        deb_else = qc;
+        quadr("BZ", "", "temp_cond", "vide");
+    }
 ;
 
 else_block:
@@ -230,5 +263,6 @@ int main(void) {
     initialization();
     yyparse();
     afficher();
+    afficher_qdr();
     return 0;
 }
