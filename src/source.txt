@@ -3,7 +3,7 @@ BeginProject M1_IV_2526;
 Setup:
 
 %% Déclarations des variables
-define a | b | c : integer;
+define a | b | c | i : integer;
 define moyenne : float = 0.0;
 define Tab : [integer ; 10];
 
