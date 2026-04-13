@@ -1,8 +1,8 @@
 %{
 #include <stdio.h>
+#include "syntax.tab.h" /* IMPORTANT: permet la communication avec syntax.y */
 int nb_ligne=1;
 %}
-
 
 IDF     [a-zA-Z]([a-zA-Z0-9_]{0,12}[a-zA-Z0-9])?
 ENTIER  [0-9]+
@@ -11,99 +11,91 @@ CHAINE  \"[^\"]*\"
 
 %%
 
+"BeginProject"   { return BEGIN_PROJECT; }
+"EndProject"     { return END_PROJECT; }
+"Setup"          { return SETUP; }
+"Run"            { return RUN; }
 
-"BeginProject"   {printf("Mot Cle: %s\n",yytext);}
-"EndProject"     {printf("Mot Cle: %s\n",yytext);}
-"Setup"          {printf("Mot Cle: %s\n",yytext);}
-"Run"            {printf("Mot Cle: %s\n",yytext);}
+"define"         { return DEFINE; }
+"const"          { return CONST; }
+"integer"        { return INTEGER; }
+"float"          { return FLOAT; }
 
+"if"             { return IF; }
+"then"           { return THEN; }
+"else"           { return ELSE; }
+"endIf"          { return ENDIF; }
 
-"define"         {printf("Mot Cle: %s\n",yytext);}
-"const"          {printf("Mot Cle: %s\n",yytext);}
+"loop"           { return LOOP; }
+"while"          { return WHILE; }
+"endloop"        { return ENDLOOP; }
+"for"            { return FOR; }
+"in"             { return IN; }
+"to"             { return TO; }
+"endfor"         { return ENDFOR; }
 
+"out"            { return OUT; }
 
-"integer"        {printf("Mot Cle: %s\n",yytext);}
-"float"          {printf("Mot Cle: %s\n",yytext);}
+"AND"            { return AND; }
+"OR"             { return OR; }
+"NON"            { return NON; }
 
+"<-"             { return COMP_AFFECT; }
+">="             { return COMP_GE; }
+"="              { return EXPECT; }
+"<="             { return COMP_LE; }
+"=="             { return COMP_EQ; }
+"!="             { return COMP_NEQ; }
+">"              { return COMP_GT; }
+"<"              { return COMP_LT; }
 
-"if"             {printf("Mot Cle: %s\n",yytext);}
-"then"           {printf("Mot Cle: %s\n",yytext);}
-"else"           {printf("Mot Cle: %s\n",yytext);}
-"endIf"          {printf("Mot Cle: %s\n",yytext);}
+"+"              { return PLUS; }
+"-"              { return MINUS; }
+"*"              { return MULT; }
+"/"              { return DIV; }
 
+";"              { return SEMI; }
+":"              { return COLON; }
+","              { return COMMA; }
+"|"              { return PIPE; }
 
-"loop"           {printf("Mot Cle: %s\n",yytext);}
-"while"          {printf("Mot Cle: %s\n",yytext);}
-"endloop"        {printf("Mot Cle: %s\n",yytext);}
-"for"            {printf("Mot Cle: %s\n",yytext);}
-"in"             {printf("Mot Cle: %s\n",yytext);}
-"to"             {printf("Mot Cle: %s\n",yytext);}
-"endfor"         {printf("Mot Cle: %s\n",yytext);}
+"("              { return LPAREN; }
+")"              { return RPAREN; }
+"{"              { return LBRACE; }
+"}"              { return RBRACE; }
+"["              { return LBRACKET; }
+"]"              { return RBRACKET; }
 
+{FLOAT} {
+   yylval.reel = atof(yytext);
+   return T_FLOAT;
+}
 
-"in"             {printf("Mot Cle: %s\n",yytext);}
-"out"            {printf("Mot Cle: %s\n",yytext);}
+{ENTIER} {
+   yylval.entier = atoi(yytext);
+   return T_ENTIER;
+}
 
+{IDF} {
+   yylval.str = strdup(yytext);
+   return T_IDF;
+}
 
-"AND"            {printf("Operateur logique: %s\n",yytext);}
-"OR"             {printf("Operateur logique: %s\n",yytext);}
-"NON"            {printf("Operateur logique: %s\n",yytext);}
+{CHAINE}  { 
+            yylval.str = strdup(yytext);
+             return T_CHAINE; 
+             }
 
+"%%".*           { /* commentaire ligne */ }
+"/*"([^*]|\*+[^*/])*\*+"/"   { /* commentaire bloc */ }
 
-"<-"             {printf("Operateur affectation: %s\n",yytext);}
+[ \t\r]+         { /* ignorer espaces et tabulations */ }
+\n               { nb_ligne++; }
 
-">="             {printf("Operateur comparaison: %s\n",yytext);}
-"="              {printf("Operateur: %s\n",yytext);}
-"<="             {printf("Operateur comparaison: %s\n",yytext);}
-"=="             {printf("Operateur comparaison: %s\n",yytext);}
-"!="             {printf("Operateur comparaison: %s\n",yytext);}
-">"              {printf("Operateur comparaison: %s\n",yytext);}
-"<"              {printf("Operateur comparaison: %s\n",yytext);}
-
-"+"              {printf("Operateur arithmetique: %s\n",yytext);}
-"-"              {printf("Operateur arithmetique: %s\n",yytext);}
-"*"              {printf("Operateur arithmetique: %s\n",yytext);}
-"/"              {printf("Operateur arithmetique: %s\n",yytext);}
-
-
-";"              {printf("Separateur: %s\n",yytext);}
-":"              {printf("Separateur: %s\n",yytext);}
-","              {printf("Separateur: %s\n",yytext);}
-"|"              {printf("Separateur: %s\n",yytext);}
-
-"("              {printf("Separateur: %s\n",yytext);}
-")"              {printf("Separateur: %s\n",yytext);}
-"{"              {printf("Separateur: %s\n",yytext);}
-"}"              {printf("Separateur: %s\n",yytext);}
-"["              {printf("Separateur: %s\n",yytext);}
-"]"              {printf("Separateur: %s\n",yytext);}
-
-
-{FLOAT}          {printf("Float: %s\n",yytext);}
-{ENTIER}         {printf("Entier: %s\n",yytext);}
-
-
-{IDF}            {printf("IDF: %s\n",yytext);}
-
-
-{CHAINE}         {printf("Chaine: %s\n",yytext);}
-
-
-"%%".*           ;   /* commentaire ligne */
-
-"//*"([^*]|\*+[^*/])*\*+/   ;  /* commentaire bloc */
-
-
-[ \t]            ;
-\n               {nb_ligne++;}
-
-
-. {printf("Erreur lexicale a la ligne %d: %s\n",nb_ligne,yytext);}
+. { printf("Erreur lexicale a la ligne %d: %s\n", nb_ligne, yytext); }
 
 %%
 
-int main()
-{
-    yylex();
-    return 0;
+int yywrap() {
+    return 1;
 }
