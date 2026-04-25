@@ -18,6 +18,11 @@ int nb_idfs = 0;
 /* Variables pour les quadruplets du IF */
 int Fin_if = 0, deb_else = 0;
 char tmp[20];
+
+/* Variables pour les quadruplets des boucles */
+int deb_while = 0, fin_while = 0;
+int deb_for = 0, fin_for = 0;
+char iter_for[30]; /* Pour sauvegarder l'itérateur du FOR */
 %}
 
 %union {
@@ -159,7 +164,7 @@ instruction:
         }
         
         /* Génération du Quadruplet d'affectation */
-        quadr("<-", "valeur_expr", "vide", $1); 
+      /*  quadr("<-", "valeur_expr", "vide", $1); */
     }
     | construct_if
     | construct_while
@@ -232,17 +237,58 @@ else_block:
 ;
 
 construct_while:
-    LOOP WHILE LPAREN condition RPAREN LBRACE instructions RBRACE ENDLOOP SEMI
-;
-
-construct_for:
-    FOR T_IDF IN T_ENTIER TO T_ENTIER LBRACE instructions RBRACE ENDFOR SEMI {
-        if (!est_declare($2)) {
-            printf("Erreur Semantique, ligne %d, colonne %d : Variable de boucle '%s' non declaree\n", nb_ligne, col, $2);
-        }
+    LOOP WHILE LPAREN { 
+        deb_while = qc; /* Sauvegarde de la position de la condition */
+    } condition RPAREN LBRACE {
+        fin_while = qc;
+        quadr("BZ", "", "temp_cond", "vide"); /* Saut si condition fausse */
+    } instructions RBRACE ENDLOOP SEMI {
+        /* Fin de la boucle, remonter à la condition */
+        sprintf(tmp, "%d", deb_while);
+        quadr("BR", tmp, "vide", "vide");
+        
+        /* Mettre à jour le BZ pour pointer APRES la boucle */
+        sprintf(tmp, "%d", qc);
+        updateQuad(fin_while, 1, tmp);
     }
 ;
 
+construct_for:
+    FOR T_IDF IN T_ENTIER {
+        if (!est_declare($2)) {
+            printf("Erreur Semantique, ligne %d, colonne %d : Variable de boucle '%s' non declaree\n", nb_ligne, col, $2);
+        } else {
+            /* 1. Initialisation : iterateur <- T_ENTIER (début) */
+            char valDebut[20];
+            sprintf(valDebut, "%d", $4);
+            quadr("<-", valDebut, "vide", $2);
+            strcpy(iter_for, $2); /* On sauvegarde le nom de la variable pour l'incrémentation */
+        }
+        deb_for = qc; /* Début de condition */
+        
+    } TO T_ENTIER LBRACE {
+        /* 2. Condition : iterateur <= T_ENTIER (fin) */
+        char valFin[20];
+        sprintf(valFin, "%d", $7);     
+        quadr("<=", iter_for, valFin, "temp_cond");
+        
+        fin_for = qc;
+        quadr("BZ", "", "temp_cond", "vide"); /* Sortir si faux */
+        
+    } instructions RBRACE ENDFOR SEMI {
+        /* 3. Incrémentation : iter_for <- iter_for + 1 */
+        quadr("+", iter_for, "1", "temp_iter");
+        quadr("<-", "temp_iter", "vide", iter_for);
+        
+        /* 4. Remonter à l'évaluation de la condition */
+        sprintf(tmp, "%d", deb_for);
+        quadr("BR", tmp, "vide", "vide");
+        
+        /* 5. Mettre à jour le BZ pour sortir complètement de la boucle */
+        sprintf(tmp, "%d", qc);
+        updateQuad(fin_for, 1, tmp);
+    }
+;
 condition:
     expression EXPECT expression
     | expression COMP_EQ expression
@@ -261,8 +307,14 @@ void yyerror(const char *s) {
 
 int main(void) {
     initialization();
-    yyparse();
-    afficher();
-    afficher_qdr();
+    
+    // yyparse() returns 0 on success, 1 on syntax error
+    if (yyparse() == 0) {
+        afficher();
+        afficher_qdr();
+    } else {
+        printf("\n>> Echec de la compilation : tables et quadruplets non generes.\n");
+    }
+    
     return 0;
 }
