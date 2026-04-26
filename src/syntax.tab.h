@@ -100,9 +100,9 @@ extern int yydebug;
     RBRACE = 301,                  /* RBRACE  */
     LBRACKET = 302,                /* LBRACKET  */
     RBRACKET = 303,                /* RBRACKET  */
-    T_ENTIER = 304,                /* T_ENTIER  */
-    T_FLOAT = 305,                 /* T_FLOAT  */
-    T_IDF = 306,                   /* T_IDF  */
+    T_IDF = 304,                   /* T_IDF  */
+    T_ENTIER = 305,                /* T_ENTIER  */
+    T_FLOAT = 306,                 /* T_FLOAT  */
     T_CHAINE = 307                 /* T_CHAINE  */
   };
   typedef enum yytokentype yytoken_kind_t;
@@ -112,11 +112,11 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 28 "syntax.y"
+#line 31 "syntax.y"
 
     int entier;
     float reel;
-    char* str;
+    char* str;      /* Champ pour les noms d'IDF et temporaires */
 
 #line 122 "syntax.tab.h"
 

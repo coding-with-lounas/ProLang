@@ -37,12 +37,15 @@ void updateQuad(int num_quad, int colon_quad, char val[]) {
 
 // Fonction d'affichage des quadruplets
 void afficher_qdr() {
-    printf("\n******************* Les Quadruplets *******************\n");
+    printf("\n=================== QUADRUPLETS ===================\n");
     int i;
     for(i = 0; i < qc; i++) {
-        printf("%d - (%s, %s, %s, %s)\n", i, quad[i].oper, quad[i].op1, quad[i].op2, quad[i].res);
+        char op1_str[100], op2_str[100], res_str[100];
+        strcpy(op1_str, strcmp(quad[i].op1, "vide") == 0 ? "" : quad[i].op1);
+        strcpy(op2_str, strcmp(quad[i].op2, "vide") == 0 ? "" : quad[i].op2);
+        strcpy(res_str, strcmp(quad[i].res, "vide") == 0 ? "" : quad[i].res);
+        printf("%03d: ( %-4s , %-10s , %-10s , %-15s )\n", i, quad[i].oper, op1_str, op2_str, res_str);
     }
-    printf("*******************************************************\n");
 }
 
 #endif

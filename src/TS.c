@@ -194,3 +194,22 @@ void afficher() {
         }
     }
 }
+
+/* ================================================================= */
+/* NOUVELLE FONCTION : GET_NATURE                                    */
+/* ================================================================= */
+
+char* get_nature(char entite[]) {
+    int index = hash_function(entite);
+    NodeTS* courant = TS[index];
+    
+    /* On parcourt la liste chaînée à l'indice trouvé par le hachage */
+    while (courant != NULL) {
+        if (strcmp(courant->name, entite) == 0) {
+            /* Retourne "VAR", "TAB" ou "CONST" stocké dans la table */
+            return courant->nature; 
+        }
+        courant = courant->suivant;
+    }
+    return "NON_DECLARE"; /* Si l'entité n'existe pas */
+}

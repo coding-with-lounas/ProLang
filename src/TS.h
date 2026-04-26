@@ -46,4 +46,6 @@ int est_declare(char entite[]);
 void inserer_type_nature(char entite[], char type[], char nature[], int taille);
 int est_constante(char entite[]);
 
+char* get_nature(char entite[]);
+
 #endif

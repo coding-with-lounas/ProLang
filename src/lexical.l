@@ -72,13 +72,13 @@ CHAINE  \"[^\"]*\"
 "]"              { rechercher(yytext, "Separateur", 3); return RBRACKET; }
 
 {FLOAT} {
-   yylval.reel = atof(yytext);
+   yylval.str = strdup(yytext);
    rechercher(yytext, "Cst float", 1); 
    return T_FLOAT;
 }
 
 {ENTIER} {
-   yylval.entier = atoi(yytext);
+   yylval.str = strdup(yytext);
    rechercher(yytext, "Cst entiere", 1);
    return T_ENTIER;
 }
@@ -96,7 +96,13 @@ CHAINE  \"[^\"]*\"
 }
 
 "%%".* { /* commentaire ligne */ }
-"/*"([^*]|\*+[^*/])*\*+"/"   { /* commentaire bloc */ }
+"//*"([^*]|\*+[^/]|[\n])*"\*//"   { 
+    for(int i = 0; yytext[i] != '\0'; i++) {
+        if(yytext[i] == '\n') { nb_ligne++; col = 1; }
+        else { col++; }
+    }
+}
+
 
 [ \t\r]+         { /* ignorer espaces et tabulations */ }
 \n               { nb_ligne++; col = 1; } /* Reset colonne à chaque ligne */
