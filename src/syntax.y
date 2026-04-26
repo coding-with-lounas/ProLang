@@ -76,6 +76,7 @@ RUN_BLOCK:
 
 declarations:
     declaration declarations
+    | error SEMI declarations { yyerrok; }
     | /* vide */
 ;
 
@@ -151,6 +152,8 @@ type:
 
 instructions:
     instruction instructions
+    | error SEMI instructions { yyerrok; }
+    | error RBRACE instructions { yyerrok; }
     | /* vide */
 ;
 
