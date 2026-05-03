@@ -43,8 +43,10 @@ void inserer(char entite[], char code[], int y) {
             
             /* Création du nouvel élément dynamique */
             NodeTS* nouveau = (NodeTS*)malloc(sizeof(NodeTS));
-            strcpy(nouveau->name, entite);
-            strcpy(nouveau->code, code);
+            strncpy(nouveau->name, entite, 255);
+            nouveau->name[255] = '\0';
+            strncpy(nouveau->code, code, 19);
+            nouveau->code[19] = '\0';
             strcpy(nouveau->type, "");
             strcpy(nouveau->nature, "");
             nouveau->taille = 0;
@@ -59,8 +61,10 @@ void inserer(char entite[], char code[], int y) {
             for (i = 0; i < 50; i++) {
                 if (tabM[i].state == 0) {
                     tabM[i].state = 1;
-                    strcpy(tabM[i].nomEntite, entite);
-                    strcpy(tabM[i].Code, code);
+                    strncpy(tabM[i].nomEntite, entite, 255);
+                    tabM[i].nomEntite[255] = '\0';
+                    strncpy(tabM[i].Code, code, 19);
+                    tabM[i].Code[19] = '\0';
                     return;
                 }
             }
@@ -69,8 +73,10 @@ void inserer(char entite[], char code[], int y) {
             for (i = 0; i < 50; i++) {
                 if (tabs[i].state == 0) {
                     tabs[i].state = 1;
-                    strcpy(tabs[i].nomEntite, entite);
-                    strcpy(tabs[i].Code, code);
+                    strncpy(tabs[i].nomEntite, entite, 255);
+                    tabs[i].nomEntite[255] = '\0';
+                    strncpy(tabs[i].Code, code, 19);
+                    tabs[i].Code[19] = '\0';
                     return;
                 }
             }

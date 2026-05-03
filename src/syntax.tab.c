@@ -74,6 +74,8 @@
 #include <string.h>
 #include "TS.h" 
 #include "quad.h" /* <-- AJOUT: Inclusion des quadruplets */
+#include "optimisation.h" /* <-- AJOUT: Inclusion de l'optimisation */
+#include "assembly.h" /* <-- AJOUT: Inclusion de la generation assembleur */
 
 int nb_temp = 1;
 char temp_nom[20]; // Buffer pour stocker le nom du temporaire
@@ -87,6 +89,8 @@ void yyerror(const char *s);
 char sauvType[20];
 char idf_tab[50][30]; /* Tableau pour stocker "a | b | c" avant de savoir le type */
 int nb_idfs = 0;
+int nb_erreurs_sem = 0;  /* Compteur d'erreurs sémantiques */
+int nb_erreurs_syn = 0;  /* Compteur d'erreurs syntaxiques */
 
 /* Variables pour les quadruplets du IF */
 int Fin_if = 0, deb_else = 0;
@@ -97,7 +101,7 @@ int deb_while = 0, fin_while = 0;
 int deb_for = 0, fin_for = 0;
 char iter_for[30]; /* Pour sauvegarder l'itérateur du FOR */
 
-#line 101 "syntax.tab.c"
+#line 105 "syntax.tab.c"
 
 # ifndef YY_CAST
 #  ifdef __cplusplus
@@ -593,13 +597,13 @@ static const yytype_int8 yytranslate[] =
 /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_int16 yyrline[] =
 {
-       0,    62,    62,    65,    66,    70,    74,    78,    79,    80,
-      88,   100,   114,   132,   143,   144,   144,   149,   150,   154,
-     155,   156,   157,   165,   179,   191,   192,   193,   194,   198,
-     204,   216,   219,   222,   229,   248,   253,   258,   263,   268,
-     276,   279,   276,   291,   292,   296,   298,   296,   313,   325,
-     313,   351,   352,   353,   354,   355,   356,   357,   358,   359,
-     360,   361
+       0,    66,    66,    69,    70,    74,    78,    82,    83,    84,
+      92,   105,   121,   139,   150,   151,   151,   156,   157,   161,
+     162,   163,   164,   172,   189,   205,   206,   207,   208,   212,
+     220,   234,   237,   240,   248,   269,   274,   279,   284,   289,
+     297,   300,   297,   312,   313,   317,   319,   317,   334,   347,
+     334,   373,   374,   375,   376,   377,   378,   379,   380,   381,
+     382,   383
 };
 #endif
 
@@ -1272,60 +1276,63 @@ yyreduce:
   switch (yyn)
     {
   case 2: /* programme: BEGIN_PROJECT T_IDF SEMI contenu END_PROJECT SEMI  */
-#line 62 "syntax.y"
+#line 66 "syntax.y"
                                                       { printf("\n>> Compilation terminee avec succes !\n"); }
-#line 1278 "syntax.tab.c"
+#line 1282 "syntax.tab.c"
     break;
 
   case 8: /* declarations: error SEMI declarations  */
-#line 79 "syntax.y"
+#line 83 "syntax.y"
                               { yyerrok; }
-#line 1284 "syntax.tab.c"
+#line 1288 "syntax.tab.c"
     break;
 
   case 10: /* declaration: DEFINE idfs COLON type SEMI  */
-#line 88 "syntax.y"
+#line 92 "syntax.y"
                                 {
         for(int i = 0; i < nb_idfs; i++) {
             if (est_declare(idf_tab[i])) {
-                printf("Erreur Semantique, ligne %d, colonne %d : Double declaration de la variable '%s'\n", nb_ligne, col, idf_tab[i]);
+                printf("Erreur Semantique a la ligne %d, colonne %d : Double declaration de la variable '%s'\n", nb_ligne, col, idf_tab[i]);
+                nb_erreurs_sem++;
             } else {
                 inserer_type_nature(idf_tab[i], sauvType, "VAR", 0);
             }
         }
         nb_idfs = 0; /* Reset pour la prochaine ligne */
     }
-#line 1299 "syntax.tab.c"
+#line 1304 "syntax.tab.c"
     break;
 
   case 11: /* declaration: DEFINE idfs COLON type EXPECT expression SEMI  */
-#line 100 "syntax.y"
+#line 105 "syntax.y"
                                                     {
         if (nb_idfs != 1) {
             printf("Erreur Syntaxe, ligne %d, colonne %d : Initialisation non permise pour de multiples identifiants.\n", nb_ligne, col);
+            nb_erreurs_syn++;
         } else {
             if (est_declare(idf_tab[0])) {
-                printf("Erreur Semantique, ligne %d, colonne %d : Double declaration de '%s'\n", nb_ligne, col, idf_tab[0]);
+                printf("Erreur Semantique a la ligne %d, colonne %d : Double declaration de '%s'\n", nb_ligne, col, idf_tab[0]);
+                nb_erreurs_sem++;
             } else {
                 inserer_type_nature(idf_tab[0], sauvType, "VAR", 0);
             }
         }
         nb_idfs = 0;
     }
-#line 1316 "syntax.tab.c"
+#line 1323 "syntax.tab.c"
     break;
 
   case 12: /* declaration: DEFINE idfs COLON LBRACKET type SEMI T_ENTIER RBRACKET SEMI  */
-#line 114 "syntax.y"
+#line 121 "syntax.y"
                                                                   {
         if (nb_idfs != 1) {
             printf("Erreur Syntaxe, ligne %d, colonne %d : Declaration de tableaux multiples non supportee.\n", nb_ligne, col);
         } else {
             if (est_declare(idf_tab[0])) {
-                printf("Erreur Semantique, ligne %d, colonne %d : Double declaration du tableau '%s'\n", nb_ligne, col, idf_tab[0]);
+                printf("Erreur Semantique a la ligne %d, colonne %d : Double declaration du tableau '%s'\n", nb_ligne, col, idf_tab[0]);
             } else {
                 if (atoi((yyvsp[-2].str)) <= 0) {
-                    printf("Erreur Semantique, ligne %d, colonne %d : La taille du tableau '%s' doit etre > 0\n", nb_ligne, col, idf_tab[0]);
+                    printf("Erreur Semantique a la ligne %d, colonne %d : La taille du tableau '%s' doit etre > 0\n", nb_ligne, col, idf_tab[0]);
                 } else {
                     inserer_type_nature(idf_tab[0], sauvType, "TAB", atoi((yyvsp[-2].str)));
                 }
@@ -1333,147 +1340,161 @@ yyreduce:
         }
         nb_idfs = 0;
     }
-#line 1337 "syntax.tab.c"
+#line 1344 "syntax.tab.c"
     break;
 
   case 13: /* declaration: CONST T_IDF COLON type EXPECT expression SEMI  */
-#line 132 "syntax.y"
+#line 139 "syntax.y"
                                                     {
         if (est_declare((yyvsp[-5].str))) {
-            printf("Erreur Semantique, ligne %d, colonne %d : Double declaration de la constante '%s'\n", nb_ligne, col, (yyvsp[-5].str));
+            printf("Erreur Semantique a la ligne %d, colonne %d : Double declaration de la constante '%s'\n", nb_ligne, col, (yyvsp[-5].str));
         } else {
             inserer_type_nature((yyvsp[-5].str), sauvType, "CONST", 0);
         }
     }
-#line 1349 "syntax.tab.c"
+#line 1356 "syntax.tab.c"
     break;
 
   case 14: /* idfs: T_IDF  */
-#line 143 "syntax.y"
+#line 150 "syntax.y"
           { strcpy(idf_tab[nb_idfs++], (yyvsp[0].str)); }
-#line 1355 "syntax.tab.c"
+#line 1362 "syntax.tab.c"
     break;
 
   case 15: /* $@1: %empty  */
-#line 144 "syntax.y"
+#line 151 "syntax.y"
             { strcpy(idf_tab[nb_idfs++], (yyvsp[0].str)); }
-#line 1361 "syntax.tab.c"
+#line 1368 "syntax.tab.c"
     break;
 
   case 17: /* type: INTEGER  */
-#line 149 "syntax.y"
+#line 156 "syntax.y"
             { strcpy(sauvType, "integer"); }
-#line 1367 "syntax.tab.c"
+#line 1374 "syntax.tab.c"
     break;
 
   case 18: /* type: FLOAT  */
-#line 150 "syntax.y"
+#line 157 "syntax.y"
             { strcpy(sauvType, "float"); }
-#line 1373 "syntax.tab.c"
+#line 1380 "syntax.tab.c"
     break;
 
   case 20: /* instructions: error SEMI instructions  */
-#line 155 "syntax.y"
+#line 162 "syntax.y"
                               { yyerrok; }
-#line 1379 "syntax.tab.c"
+#line 1386 "syntax.tab.c"
     break;
 
   case 21: /* instructions: error RBRACE instructions  */
-#line 156 "syntax.y"
+#line 163 "syntax.y"
                                 { yyerrok; }
-#line 1385 "syntax.tab.c"
+#line 1392 "syntax.tab.c"
     break;
 
   case 23: /* instruction: T_IDF COMP_AFFECT expression SEMI  */
-#line 165 "syntax.y"
+#line 172 "syntax.y"
                                       {
         if (!est_declare((yyvsp[-3].str))) {
-            printf("Erreur Semantique, ligne %d : Variable '%s' non declaree\n", nb_ligne, (yyvsp[-3].str));
+            printf("Erreur Semantique a la ligne %d, colonne %d : Variable '%s' non declaree\n", nb_ligne, col, (yyvsp[-3].str));
+            nb_erreurs_sem++;
         } else if (strcmp(get_nature((yyvsp[-3].str)), "VAR") != 0) {
-            printf("Erreur Semantique, ligne %d : '%s' n'est pas une variable simple\n", nb_ligne, (yyvsp[-3].str));
+            printf("Erreur Semantique a la ligne %d, colonne %d : '%s' n'est pas une variable simple\n", nb_ligne, col, (yyvsp[-3].str));
+            nb_erreurs_sem++;
         } else if (est_constante((yyvsp[-3].str))) {
-            printf("Erreur Semantique, ligne %d : Modification de la constante '%s' interdite\n", nb_ligne, (yyvsp[-3].str));
+            printf("Erreur Semantique a la ligne %d, colonne %d : Modification de la constante '%s' interdite\n", nb_ligne, col, (yyvsp[-3].str));
+            nb_erreurs_sem++;
         } else {
             // Génération du quadruplet d'affectation simple
-            quadr("<-", (yyvsp[-1].str), "vide", (yyvsp[-3].str));
+            if ((yyvsp[-1].str)) quadr("<-", (yyvsp[-1].str), "vide", (yyvsp[-3].str));
         }
     }
-#line 1402 "syntax.tab.c"
+#line 1412 "syntax.tab.c"
     break;
 
   case 24: /* instruction: T_IDF LBRACKET expression RBRACKET COMP_AFFECT expression SEMI  */
-#line 179 "syntax.y"
+#line 189 "syntax.y"
                                                                      {
         if (!est_declare((yyvsp[-6].str))) {
-            printf("Erreur Semantique, ligne %d : Tableau '%s' non declare\n", nb_ligne, (yyvsp[-6].str));
+            printf("Erreur Semantique a la ligne %d, colonne %d : Tableau '%s' non declare\n", nb_ligne, col, (yyvsp[-6].str));
+            nb_erreurs_sem++;
         } else if (strcmp(get_nature((yyvsp[-6].str)), "TAB") != 0) {
-            printf("Erreur Semantique, ligne %d : '%s' n'est pas un tableau\n", nb_ligne, (yyvsp[-6].str));
+            printf("Erreur Semantique a la ligne %d, colonne %d : '%s' n'est pas un tableau\n", nb_ligne, col, (yyvsp[-6].str));
+            nb_erreurs_sem++;
         } else {
             // Génération du quadruplet pour tableau
-            char dest[50];
-            sprintf(dest, "%s[%s]", (yyvsp[-6].str), (yyvsp[-4].str));
-            quadr("<-", (yyvsp[-1].str), "vide", dest);
+            if ((yyvsp[-4].str) && (yyvsp[-1].str)) {
+                char dest[50];
+                sprintf(dest, "%s[%s]", (yyvsp[-6].str), (yyvsp[-4].str));
+                quadr("<-", (yyvsp[-1].str), "vide", dest);
+            }
         }
     }
-#line 1419 "syntax.tab.c"
+#line 1433 "syntax.tab.c"
     break;
 
   case 29: /* in_out: IN LPAREN T_IDF RPAREN SEMI  */
-#line 198 "syntax.y"
+#line 212 "syntax.y"
                                 {
         if (!est_declare((yyvsp[-2].str))) {
-            printf("Erreur Semantique, ligne %d, colonne %d : Variable '%s' non declaree (Input)\n", nb_ligne, col, (yyvsp[-2].str));
+            printf("Erreur Semantique a la ligne %d, colonne %d : Variable '%s' non declaree (Input)\n", nb_ligne, col, (yyvsp[-2].str));
+            nb_erreurs_sem++;
+        } else {
+            quadr("IN", "vide", "vide", (yyvsp[-2].str));
         }
-        quadr("IN", "vide", "vide", (yyvsp[-2].str));
     }
-#line 1430 "syntax.tab.c"
+#line 1446 "syntax.tab.c"
     break;
 
   case 30: /* in_out: OUT LPAREN T_CHAINE COMMA T_IDF RPAREN SEMI  */
-#line 204 "syntax.y"
+#line 220 "syntax.y"
                                                   {
         if (!est_declare((yyvsp[-2].str))) {
-            printf("Erreur Semantique, ligne %d, colonne %d : Variable '%s' non declaree (Output)\n", nb_ligne, col, (yyvsp[-2].str));
+            printf("Erreur Semantique a la ligne %d, colonne %d : Variable '%s' non declaree (Output)\n", nb_ligne, col, (yyvsp[-2].str));
+            nb_erreurs_sem++;
+        } else {
+            quadr("OUT", (yyvsp[-4].str), "vide", (yyvsp[-2].str));
         }
-        quadr("OUT", (yyvsp[-4].str), "vide", (yyvsp[-2].str));
     }
-#line 1441 "syntax.tab.c"
+#line 1459 "syntax.tab.c"
     break;
 
   case 31: /* expression: T_ENTIER  */
-#line 216 "syntax.y"
+#line 234 "syntax.y"
              { 
-        (yyval.str) = strdup((yyvsp[0].str)); // On transmet la valeur brute (ex: "5")
+        (yyval.str) = (yyvsp[0].str) ? strdup((yyvsp[0].str)) : strdup("0");
     }
-#line 1449 "syntax.tab.c"
+#line 1467 "syntax.tab.c"
     break;
 
   case 32: /* expression: T_FLOAT  */
-#line 219 "syntax.y"
+#line 237 "syntax.y"
               { 
-        (yyval.str) = strdup((yyvsp[0].str)); 
+        (yyval.str) = (yyvsp[0].str) ? strdup((yyvsp[0].str)) : strdup("0.0");
     }
-#line 1457 "syntax.tab.c"
+#line 1475 "syntax.tab.c"
     break;
 
   case 33: /* expression: T_IDF  */
-#line 222 "syntax.y"
+#line 240 "syntax.y"
             {
         if (!est_declare((yyvsp[0].str))) {
-            printf("Erreur Semantique, ligne %d : '%s' non declaree\n", nb_ligne, (yyvsp[0].str));
+            printf("Erreur Semantique a la ligne %d, colonne %d : '%s' non declaree\n", nb_ligne, col, (yyvsp[0].str));
+            nb_erreurs_sem++;
         }
-        (yyval.str) = strdup((yyvsp[0].str)); // On transmet le nom de l'IDF
+        (yyval.str) = (yyvsp[0].str) ? strdup((yyvsp[0].str)) : strdup("?");
     }
-#line 1468 "syntax.tab.c"
+#line 1487 "syntax.tab.c"
     break;
 
   case 34: /* expression: T_IDF LBRACKET expression RBRACKET  */
-#line 229 "syntax.y"
+#line 248 "syntax.y"
                                          {
         if (!est_declare((yyvsp[-3].str))) {
-            printf("Erreur Semantique : %s non declare\n", (yyvsp[-3].str));
+            printf("Erreur Semantique a la ligne %d, colonne %d : Tableau '%s' non declare\n", nb_ligne, col, (yyvsp[-3].str));
+            nb_erreurs_sem++;
         } else if (strcmp(get_nature((yyvsp[-3].str)), "TAB") != 0) {
-            printf("Erreur Semantique : %s n'est pas un tableau\n", (yyvsp[-3].str));
+            printf("Erreur Semantique a la ligne %d, colonne %d : '%s' n'est pas un tableau\n", nb_ligne, col, (yyvsp[-3].str));
+            nb_erreurs_sem++;
         } else {
             // Création du temporaire
             sprintf(temp_nom, "t%d", nb_temp++);
@@ -1487,105 +1508,105 @@ yyreduce:
             (yyval.str) = strdup(temp_nom);
         }
     }
-#line 1491 "syntax.tab.c"
+#line 1512 "syntax.tab.c"
     break;
 
   case 35: /* expression: expression PLUS expression  */
-#line 248 "syntax.y"
+#line 269 "syntax.y"
                                  {
         sprintf(temp_nom, "t%d", nb_temp++);
         quadr("+", (yyvsp[-2].str), (yyvsp[0].str), temp_nom);
         (yyval.str) = strdup(temp_nom);
     }
-#line 1501 "syntax.tab.c"
+#line 1522 "syntax.tab.c"
     break;
 
   case 36: /* expression: expression MINUS expression  */
-#line 253 "syntax.y"
+#line 274 "syntax.y"
                                   {
         sprintf(temp_nom, "t%d", nb_temp++);
         quadr("-", (yyvsp[-2].str), (yyvsp[0].str), temp_nom);
         (yyval.str) = strdup(temp_nom);
     }
-#line 1511 "syntax.tab.c"
+#line 1532 "syntax.tab.c"
     break;
 
   case 37: /* expression: expression MULT expression  */
-#line 258 "syntax.y"
+#line 279 "syntax.y"
                                  {
         sprintf(temp_nom, "t%d", nb_temp++);
         quadr("*", (yyvsp[-2].str), (yyvsp[0].str), temp_nom);
         (yyval.str) = strdup(temp_nom);
     }
-#line 1521 "syntax.tab.c"
+#line 1542 "syntax.tab.c"
     break;
 
   case 38: /* expression: expression DIV expression  */
-#line 263 "syntax.y"
+#line 284 "syntax.y"
                                 {
         sprintf(temp_nom, "t%d", nb_temp++);
         quadr("/", (yyvsp[-2].str), (yyvsp[0].str), temp_nom);
         (yyval.str) = strdup(temp_nom);
     }
-#line 1531 "syntax.tab.c"
+#line 1552 "syntax.tab.c"
     break;
 
   case 39: /* expression: LPAREN expression RPAREN  */
-#line 268 "syntax.y"
+#line 289 "syntax.y"
                                {
         (yyval.str) = strdup((yyvsp[-1].str));
     }
-#line 1539 "syntax.tab.c"
+#line 1560 "syntax.tab.c"
     break;
 
   case 40: /* @2: %empty  */
-#line 276 "syntax.y"
+#line 297 "syntax.y"
                                                  {
         (yyval.entier) = qc;
         quadr("BZ", "vide", (yyvsp[-4].str), "vide");
     }
-#line 1548 "syntax.tab.c"
+#line 1569 "syntax.tab.c"
     break;
 
   case 41: /* @3: %empty  */
-#line 279 "syntax.y"
+#line 300 "syntax.y"
                           {
         (yyval.entier) = qc;
         quadr("BR", "vide", "vide", "vide");
         sprintf(tmp, "%d", qc);
         updateQuad((yyvsp[-2].entier), 3, tmp);
     }
-#line 1559 "syntax.tab.c"
+#line 1580 "syntax.tab.c"
     break;
 
   case 42: /* construct_if: IF LPAREN condition RPAREN THEN COLON LBRACE @2 instructions RBRACE @3 else_block ENDIF SEMI  */
-#line 284 "syntax.y"
+#line 305 "syntax.y"
                             {
         sprintf(tmp, "%d", qc);
         updateQuad((yyvsp[-3].entier), 3, tmp);
     }
-#line 1568 "syntax.tab.c"
+#line 1589 "syntax.tab.c"
     break;
 
   case 45: /* @4: %empty  */
-#line 296 "syntax.y"
+#line 317 "syntax.y"
                       { 
         (yyval.entier) = qc; /* $4: Sauvegarde de la position de la condition */
     }
-#line 1576 "syntax.tab.c"
+#line 1597 "syntax.tab.c"
     break;
 
   case 46: /* @5: %empty  */
-#line 298 "syntax.y"
+#line 319 "syntax.y"
                               {
         (yyval.entier) = qc; /* $8: Sauvegarde de la position du BZ */
         quadr("BZ", "vide", (yyvsp[-2].str), "vide"); /* Saut si condition fausse */
     }
-#line 1585 "syntax.tab.c"
+#line 1606 "syntax.tab.c"
     break;
 
   case 47: /* construct_while: LOOP WHILE LPAREN @4 condition RPAREN LBRACE @5 instructions RBRACE ENDLOOP SEMI  */
-#line 301 "syntax.y"
+#line 322 "syntax.y"
                                        {
         /* Fin de la boucle, remonter à la condition */
         sprintf(tmp, "%d", (yyvsp[-8].entier));
@@ -1595,14 +1616,15 @@ yyreduce:
         sprintf(tmp, "%d", qc);
         updateQuad((yyvsp[-4].entier), 3, tmp);
     }
-#line 1599 "syntax.tab.c"
+#line 1620 "syntax.tab.c"
     break;
 
   case 48: /* @6: %empty  */
-#line 313 "syntax.y"
+#line 334 "syntax.y"
                           {
         if (!est_declare((yyvsp[-2].str))) {
-            printf("Erreur Semantique, ligne %d, colonne %d : Variable de boucle '%s' non declaree\n", nb_ligne, col, (yyvsp[-2].str));
+            printf("Erreur Semantique a la ligne %d, colonne %d : Variable de boucle '%s' non declaree\n", nb_ligne, col, (yyvsp[-2].str));
+            nb_erreurs_sem++;
         } else {
             /* 1. Initialisation : iterateur <- T_ENTIER (début) */
             char valDebut[20];
@@ -1613,11 +1635,11 @@ yyreduce:
         (yyval.entier) = qc; /* $5: Début de condition */
         
     }
-#line 1617 "syntax.tab.c"
+#line 1639 "syntax.tab.c"
     break;
 
   case 49: /* @7: %empty  */
-#line 325 "syntax.y"
+#line 347 "syntax.y"
                          {
         /* 2. Condition : iterateur <= T_ENTIER (fin) */
         char valFin[20];
@@ -1629,11 +1651,11 @@ yyreduce:
         quadr("BZ", "vide", temp_nom, "vide"); /* Sortir si faux */
         
     }
-#line 1633 "syntax.tab.c"
+#line 1655 "syntax.tab.c"
     break;
 
   case 50: /* construct_for: FOR T_IDF IN T_ENTIER @6 TO T_ENTIER LBRACE @7 instructions RBRACE ENDFOR SEMI  */
-#line 335 "syntax.y"
+#line 357 "syntax.y"
                                       {
         /* 3. Incrémentation : iter_for <- iter_for + 1 */
         sprintf(temp_nom, "t%d", nb_temp++);
@@ -1648,77 +1670,77 @@ yyreduce:
         sprintf(tmp, "%d", qc);
         updateQuad((yyvsp[-4].entier), 3, tmp);
     }
-#line 1652 "syntax.tab.c"
+#line 1674 "syntax.tab.c"
     break;
 
   case 51: /* condition: expression EXPECT expression  */
-#line 351 "syntax.y"
+#line 373 "syntax.y"
                                  { sprintf(temp_nom, "t%d", nb_temp++); quadr("=", (yyvsp[-2].str), (yyvsp[0].str), temp_nom); (yyval.str) = strdup(temp_nom); }
-#line 1658 "syntax.tab.c"
+#line 1680 "syntax.tab.c"
     break;
 
   case 52: /* condition: expression COMP_EQ expression  */
-#line 352 "syntax.y"
+#line 374 "syntax.y"
                                     { sprintf(temp_nom, "t%d", nb_temp++); quadr("==", (yyvsp[-2].str), (yyvsp[0].str), temp_nom); (yyval.str) = strdup(temp_nom); }
-#line 1664 "syntax.tab.c"
+#line 1686 "syntax.tab.c"
     break;
 
   case 53: /* condition: expression COMP_NEQ expression  */
-#line 353 "syntax.y"
+#line 375 "syntax.y"
                                      { sprintf(temp_nom, "t%d", nb_temp++); quadr("!=", (yyvsp[-2].str), (yyvsp[0].str), temp_nom); (yyval.str) = strdup(temp_nom); }
-#line 1670 "syntax.tab.c"
+#line 1692 "syntax.tab.c"
     break;
 
   case 54: /* condition: expression COMP_GT expression  */
-#line 354 "syntax.y"
+#line 376 "syntax.y"
                                     { sprintf(temp_nom, "t%d", nb_temp++); quadr(">", (yyvsp[-2].str), (yyvsp[0].str), temp_nom); (yyval.str) = strdup(temp_nom); }
-#line 1676 "syntax.tab.c"
+#line 1698 "syntax.tab.c"
     break;
 
   case 55: /* condition: expression COMP_LT expression  */
-#line 355 "syntax.y"
+#line 377 "syntax.y"
                                     { sprintf(temp_nom, "t%d", nb_temp++); quadr("<", (yyvsp[-2].str), (yyvsp[0].str), temp_nom); (yyval.str) = strdup(temp_nom); }
-#line 1682 "syntax.tab.c"
+#line 1704 "syntax.tab.c"
     break;
 
   case 56: /* condition: expression COMP_GE expression  */
-#line 356 "syntax.y"
+#line 378 "syntax.y"
                                     { sprintf(temp_nom, "t%d", nb_temp++); quadr(">=", (yyvsp[-2].str), (yyvsp[0].str), temp_nom); (yyval.str) = strdup(temp_nom); }
-#line 1688 "syntax.tab.c"
+#line 1710 "syntax.tab.c"
     break;
 
   case 57: /* condition: expression COMP_LE expression  */
-#line 357 "syntax.y"
+#line 379 "syntax.y"
                                     { sprintf(temp_nom, "t%d", nb_temp++); quadr("<=", (yyvsp[-2].str), (yyvsp[0].str), temp_nom); (yyval.str) = strdup(temp_nom); }
-#line 1694 "syntax.tab.c"
+#line 1716 "syntax.tab.c"
     break;
 
   case 58: /* condition: condition AND condition  */
-#line 358 "syntax.y"
+#line 380 "syntax.y"
                               { sprintf(temp_nom, "t%d", nb_temp++); quadr("AND", (yyvsp[-2].str), (yyvsp[0].str), temp_nom); (yyval.str) = strdup(temp_nom); }
-#line 1700 "syntax.tab.c"
+#line 1722 "syntax.tab.c"
     break;
 
   case 59: /* condition: condition OR condition  */
-#line 359 "syntax.y"
+#line 381 "syntax.y"
                              { sprintf(temp_nom, "t%d", nb_temp++); quadr("OR", (yyvsp[-2].str), (yyvsp[0].str), temp_nom); (yyval.str) = strdup(temp_nom); }
-#line 1706 "syntax.tab.c"
+#line 1728 "syntax.tab.c"
     break;
 
   case 60: /* condition: NON condition  */
-#line 360 "syntax.y"
+#line 382 "syntax.y"
                     { sprintf(temp_nom, "t%d", nb_temp++); quadr("NOT", (yyvsp[0].str), "vide", temp_nom); (yyval.str) = strdup(temp_nom); }
-#line 1712 "syntax.tab.c"
+#line 1734 "syntax.tab.c"
     break;
 
   case 61: /* condition: LPAREN condition RPAREN  */
-#line 361 "syntax.y"
+#line 383 "syntax.y"
                               { (yyval.str) = strdup((yyvsp[-1].str)); }
-#line 1718 "syntax.tab.c"
+#line 1740 "syntax.tab.c"
     break;
 
 
-#line 1722 "syntax.tab.c"
+#line 1744 "syntax.tab.c"
 
       default: break;
     }
@@ -1911,23 +1933,38 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 364 "syntax.y"
+#line 386 "syntax.y"
 
 
 void yyerror(const char *s) {
     fprintf(stderr, "Erreur syntaxique, ligne %d, colonne %d\n", nb_ligne, col);
+    nb_erreurs_syn++;
 }
 
 int main(void) {
     initialization();
     
-    // yyparse() returns 0 on success, 1 on syntax error
-    if (yyparse() == 0) {
-        afficher();
+    yyparse(); /* On parse toujours jusqu'au bout */
+    
+    /* Toujours afficher la table des symboles pour voir ce qui a été analysé */
+    afficher();
+    
+    /* N'afficher les quadruplets que s'il n'y a pas d'erreurs */
+    if (nb_erreurs_syn == 0 && nb_erreurs_sem == 0) {
+        printf("\n>> Avant optimisation :\n");
         afficher_qdr();
+        
+        optimiser_quadruplets();
+        printf("\n>> Après optimisation :\n");
+        afficher_qdr();
+        
+        generer_assembleur("code.asm");
+        
+        printf("\n>> Compilation terminee avec succes !\n");
     } else {
-        printf("\n>> Echec de la compilation : tables et quadruplets non generes.\n");
+        printf("\n>> Compilation terminee avec %d erreur(s) syntaxique(s) et %d erreur(s) semantique(s).\n",
+               nb_erreurs_syn, nb_erreurs_sem);
     }
     
-    return 0;
+    return (nb_erreurs_syn > 0 || nb_erreurs_sem > 0) ? 1 : 0;
 }

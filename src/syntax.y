@@ -4,6 +4,8 @@
 #include <string.h>
 #include "TS.h" 
 #include "quad.h" /* <-- AJOUT: Inclusion des quadruplets */
+#include "optimisation.h" /* <-- AJOUT: Inclusion de l'optimisation */
+#include "assembly.h" /* <-- AJOUT: Inclusion de la generation assembleur */
 
 int nb_temp = 1;
 char temp_nom[20]; // Buffer pour stocker le nom du temporaire
@@ -17,6 +19,8 @@ void yyerror(const char *s);
 char sauvType[20];
 char idf_tab[50][30]; /* Tableau pour stocker "a | b | c" avant de savoir le type */
 int nb_idfs = 0;
+int nb_erreurs_sem = 0;  /* Compteur d'erreurs sémantiques */
+int nb_erreurs_syn = 0;  /* Compteur d'erreurs syntaxiques */
 
 /* Variables pour les quadruplets du IF */
 int Fin_if = 0, deb_else = 0;
@@ -88,7 +92,8 @@ declaration:
     DEFINE idfs COLON type SEMI {
         for(int i = 0; i < nb_idfs; i++) {
             if (est_declare(idf_tab[i])) {
-                printf("Erreur Semantique, ligne %d, colonne %d : Double declaration de la variable '%s'\n", nb_ligne, col, idf_tab[i]);
+                printf("Erreur Semantique a la ligne %d, colonne %d : Double declaration de la variable '%s'\n", nb_ligne, col, idf_tab[i]);
+                nb_erreurs_sem++;
             } else {
                 inserer_type_nature(idf_tab[i], sauvType, "VAR", 0);
             }
@@ -100,9 +105,11 @@ declaration:
     | DEFINE idfs COLON type EXPECT expression SEMI {
         if (nb_idfs != 1) {
             printf("Erreur Syntaxe, ligne %d, colonne %d : Initialisation non permise pour de multiples identifiants.\n", nb_ligne, col);
+            nb_erreurs_syn++;
         } else {
             if (est_declare(idf_tab[0])) {
-                printf("Erreur Semantique, ligne %d, colonne %d : Double declaration de '%s'\n", nb_ligne, col, idf_tab[0]);
+                printf("Erreur Semantique a la ligne %d, colonne %d : Double declaration de '%s'\n", nb_ligne, col, idf_tab[0]);
+                nb_erreurs_sem++;
             } else {
                 inserer_type_nature(idf_tab[0], sauvType, "VAR", 0);
             }
@@ -116,10 +123,10 @@ declaration:
             printf("Erreur Syntaxe, ligne %d, colonne %d : Declaration de tableaux multiples non supportee.\n", nb_ligne, col);
         } else {
             if (est_declare(idf_tab[0])) {
-                printf("Erreur Semantique, ligne %d, colonne %d : Double declaration du tableau '%s'\n", nb_ligne, col, idf_tab[0]);
+                printf("Erreur Semantique a la ligne %d, colonne %d : Double declaration du tableau '%s'\n", nb_ligne, col, idf_tab[0]);
             } else {
                 if (atoi($7) <= 0) {
-                    printf("Erreur Semantique, ligne %d, colonne %d : La taille du tableau '%s' doit etre > 0\n", nb_ligne, col, idf_tab[0]);
+                    printf("Erreur Semantique a la ligne %d, colonne %d : La taille du tableau '%s' doit etre > 0\n", nb_ligne, col, idf_tab[0]);
                 } else {
                     inserer_type_nature(idf_tab[0], sauvType, "TAB", atoi($7));
                 }
@@ -131,7 +138,7 @@ declaration:
     /* 4. Declaration de Constante: const Pi : float = 3.14 ; */
     | CONST T_IDF COLON type EXPECT expression SEMI {
         if (est_declare($2)) {
-            printf("Erreur Semantique, ligne %d, colonne %d : Double declaration de la constante '%s'\n", nb_ligne, col, $2);
+            printf("Erreur Semantique a la ligne %d, colonne %d : Double declaration de la constante '%s'\n", nb_ligne, col, $2);
         } else {
             inserer_type_nature($2, sauvType, "CONST", 0);
         }
@@ -164,28 +171,35 @@ instruction:
     /* CAS 1 : Affectation simple (ex: x <- 10;) */
     T_IDF COMP_AFFECT expression SEMI {
         if (!est_declare($1)) {
-            printf("Erreur Semantique, ligne %d : Variable '%s' non declaree\n", nb_ligne, $1);
+            printf("Erreur Semantique a la ligne %d, colonne %d : Variable '%s' non declaree\n", nb_ligne, col, $1);
+            nb_erreurs_sem++;
         } else if (strcmp(get_nature($1), "VAR") != 0) {
-            printf("Erreur Semantique, ligne %d : '%s' n'est pas une variable simple\n", nb_ligne, $1);
+            printf("Erreur Semantique a la ligne %d, colonne %d : '%s' n'est pas une variable simple\n", nb_ligne, col, $1);
+            nb_erreurs_sem++;
         } else if (est_constante($1)) {
-            printf("Erreur Semantique, ligne %d : Modification de la constante '%s' interdite\n", nb_ligne, $1);
+            printf("Erreur Semantique a la ligne %d, colonne %d : Modification de la constante '%s' interdite\n", nb_ligne, col, $1);
+            nb_erreurs_sem++;
         } else {
             // Génération du quadruplet d'affectation simple
-            quadr("<-", $3, "vide", $1);
+            if ($3) quadr("<-", $3, "vide", $1);
         }
     }
 
     /* CAS 2 : Affectation dans un tableau (ex: tab[i] <- 10;) */
     | T_IDF LBRACKET expression RBRACKET COMP_AFFECT expression SEMI {
         if (!est_declare($1)) {
-            printf("Erreur Semantique, ligne %d : Tableau '%s' non declare\n", nb_ligne, $1);
+            printf("Erreur Semantique a la ligne %d, colonne %d : Tableau '%s' non declare\n", nb_ligne, col, $1);
+            nb_erreurs_sem++;
         } else if (strcmp(get_nature($1), "TAB") != 0) {
-            printf("Erreur Semantique, ligne %d : '%s' n'est pas un tableau\n", nb_ligne, $1);
+            printf("Erreur Semantique a la ligne %d, colonne %d : '%s' n'est pas un tableau\n", nb_ligne, col, $1);
+            nb_erreurs_sem++;
         } else {
             // Génération du quadruplet pour tableau
-            char dest[50];
-            sprintf(dest, "%s[%s]", $1, $3);
-            quadr("<-", $6, "vide", dest);
+            if ($3 && $6) {
+                char dest[50];
+                sprintf(dest, "%s[%s]", $1, $3);
+                quadr("<-", $6, "vide", dest);
+            }
         }
     }
     | construct_if
@@ -197,15 +211,19 @@ instruction:
 in_out:
     IN LPAREN T_IDF RPAREN SEMI {
         if (!est_declare($3)) {
-            printf("Erreur Semantique, ligne %d, colonne %d : Variable '%s' non declaree (Input)\n", nb_ligne, col, $3);
+            printf("Erreur Semantique a la ligne %d, colonne %d : Variable '%s' non declaree (Input)\n", nb_ligne, col, $3);
+            nb_erreurs_sem++;
+        } else {
+            quadr("IN", "vide", "vide", $3);
         }
-        quadr("IN", "vide", "vide", $3);
     }
     | OUT LPAREN T_CHAINE COMMA T_IDF RPAREN SEMI {
         if (!est_declare($5)) {
-            printf("Erreur Semantique, ligne %d, colonne %d : Variable '%s' non declaree (Output)\n", nb_ligne, col, $5);
+            printf("Erreur Semantique a la ligne %d, colonne %d : Variable '%s' non declaree (Output)\n", nb_ligne, col, $5);
+            nb_erreurs_sem++;
+        } else {
+            quadr("OUT", $3, "vide", $5);
         }
-        quadr("OUT", $3, "vide", $5);
     }
 ;
 
@@ -214,23 +232,26 @@ in_out:
 /* ================================================================= */
 expression:
     T_ENTIER { 
-        $$ = strdup($1); // On transmet la valeur brute (ex: "5")
+        $$ = $1 ? strdup($1) : strdup("0");
     }
     | T_FLOAT { 
-        $$ = strdup($1); 
+        $$ = $1 ? strdup($1) : strdup("0.0");
     }
     | T_IDF {
         if (!est_declare($1)) {
-            printf("Erreur Semantique, ligne %d : '%s' non declaree\n", nb_ligne, $1);
+            printf("Erreur Semantique a la ligne %d, colonne %d : '%s' non declaree\n", nb_ligne, col, $1);
+            nb_erreurs_sem++;
         }
-        $$ = strdup($1); // On transmet le nom de l'IDF
+        $$ = $1 ? strdup($1) : strdup("?");
     }
     /* AJOUT : LECTURE TABLEAU (ex: tab[i]) */
     | T_IDF LBRACKET expression RBRACKET {
         if (!est_declare($1)) {
-            printf("Erreur Semantique : %s non declare\n", $1);
+            printf("Erreur Semantique a la ligne %d, colonne %d : Tableau '%s' non declare\n", nb_ligne, col, $1);
+            nb_erreurs_sem++;
         } else if (strcmp(get_nature($1), "TAB") != 0) {
-            printf("Erreur Semantique : %s n'est pas un tableau\n", $1);
+            printf("Erreur Semantique a la ligne %d, colonne %d : '%s' n'est pas un tableau\n", nb_ligne, col, $1);
+            nb_erreurs_sem++;
         } else {
             // Création du temporaire
             sprintf(temp_nom, "t%d", nb_temp++);
@@ -312,7 +333,8 @@ construct_while:
 construct_for:
     FOR T_IDF IN T_ENTIER {
         if (!est_declare($2)) {
-            printf("Erreur Semantique, ligne %d, colonne %d : Variable de boucle '%s' non declaree\n", nb_ligne, col, $2);
+            printf("Erreur Semantique a la ligne %d, colonne %d : Variable de boucle '%s' non declaree\n", nb_ligne, col, $2);
+            nb_erreurs_sem++;
         } else {
             /* 1. Initialisation : iterateur <- T_ENTIER (début) */
             char valDebut[20];
@@ -365,18 +387,33 @@ condition:
 
 void yyerror(const char *s) {
     fprintf(stderr, "Erreur syntaxique, ligne %d, colonne %d\n", nb_ligne, col);
+    nb_erreurs_syn++;
 }
 
 int main(void) {
     initialization();
     
-    // yyparse() returns 0 on success, 1 on syntax error
-    if (yyparse() == 0) {
-        afficher();
+    yyparse(); /* On parse toujours jusqu'au bout */
+    
+    /* Toujours afficher la table des symboles pour voir ce qui a été analysé */
+    afficher();
+    
+    /* N'afficher les quadruplets que s'il n'y a pas d'erreurs */
+    if (nb_erreurs_syn == 0 && nb_erreurs_sem == 0) {
+        printf("\n>> Avant optimisation :\n");
         afficher_qdr();
+        
+        optimiser_quadruplets();
+        printf("\n>> Après optimisation :\n");
+        afficher_qdr();
+        
+        generer_assembleur("code.asm");
+        
+        printf("\n>> Compilation terminee avec succes !\n");
     } else {
-        printf("\n>> Echec de la compilation : tables et quadruplets non generes.\n");
+        printf("\n>> Compilation terminee avec %d erreur(s) syntaxique(s) et %d erreur(s) semantique(s).\n",
+               nb_erreurs_syn, nb_erreurs_sem);
     }
     
-    return 0;
+    return (nb_erreurs_syn > 0 || nb_erreurs_sem > 0) ? 1 : 0;
 }

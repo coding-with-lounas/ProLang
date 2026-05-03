@@ -15,7 +15,7 @@
 /* 1. Structure pour la Table de Hachage (IDFs et Constantes) */
 /* Chaque case sera une liste chainee pour gerer les collisions */
 typedef struct NodeTS {
-    char name[30];
+    char name[256];
     char code[20];
     char type[20];   // integer, float
     char nature[20]; // VAR, CONST, TAB
@@ -26,7 +26,7 @@ typedef struct NodeTS {
 /* 2. Structures pour les Mots cles et Separateurs (Restent en tableaux simples) */
 typedef struct {
     int state;
-    char nomEntite[30];
+    char nomEntite[256];
     char Code[20];
 } TypeSM;
 

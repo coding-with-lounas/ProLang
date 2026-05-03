@@ -1,0 +1,54 @@
+BeginProject M1_iv_2526;
+
+Setup:
+%% Declaration d'une variable valide
+define a : integer;
+
+%% Erreur 1: Double declaration d'une variable
+define a : float;
+
+%% Declaration d'un tableau valide
+define tab : [integer; 10];
+
+%% Erreur 2: Double declaration d'un tableau
+define tab : [float; 5];
+
+%% Erreur 3: Taille de tableau inferieure ou egale a 0
+define tab_invalide : [integer; 0];
+
+%% Declaration d'une constante valide
+const pi : float = 3.14;
+
+%% Erreur 4: Double declaration d'une constante
+const pi : integer = 3;
+
+Run:
+{
+    %% Erreur 5: Utilisation d'une variable non declaree lors d'une affectation
+    b <- 10;
+    
+    %% Erreur 6: Modification d'une constante interdite
+    pi <- 3.1415;
+    
+    %% Erreur 7: Utilisation d'une variable simple comme tableau
+    a[5] <- 10;
+    
+    %% Erreur 8: Utilisation d'un tableau comme variable simple
+    tab <- 15;
+    
+    %% Erreur 9: Utilisation d'une variable non declaree dans une expression
+    a <- a + c;
+
+    %% Erreur 10: Variable de boucle for non declaree
+    for i in 1 to 10 {
+        a <- a + 1;
+    } endfor;
+
+    %% Erreur 11: Variable non declaree dans la fonction in()
+    in(x);
+
+    %% Erreur 12: Variable non declaree dans la fonction out()
+    out("Valeur = ", y);
+
+}
+EndProject;

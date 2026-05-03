@@ -40,6 +40,8 @@ void afficher_qdr() {
     printf("\n=================== QUADRUPLETS ===================\n");
     int i;
     for(i = 0; i < qc; i++) {
+        if (strcmp(quad[i].oper, "vide") == 0) continue; // NE PAS AFFICHER LES QUADS VIDES (OPTIMISÉS)
+        
         char op1_str[100], op2_str[100], res_str[100];
         strcpy(op1_str, strcmp(quad[i].op1, "vide") == 0 ? "" : quad[i].op1);
         strcpy(op2_str, strcmp(quad[i].op2, "vide") == 0 ? "" : quad[i].op2);

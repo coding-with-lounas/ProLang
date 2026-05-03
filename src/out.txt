@@ -1,0 +1,273 @@
+
+>> Compilation terminee avec succes !
+
+/*********************** Table des symboles (Hachage Chaînage) ***********************/
+	| Index | Nom             | Code         | Type       | Nature     | Taille
+	----------------------------------------------------------------------------------------
+	| [00]  | 10              | Cst entiere  |            |            | 0     
+	| [00]  | a               | IDF          | float      | VAR        | 0     
+	| [01]  | 20              | Cst entiere  |            |            | 0     
+	| [01]  | b               | IDF          | float      | VAR        | 0     
+	| [02]  | 30              | Cst entiere  |            |            | 0     
+	| [03]  | Max             | IDF          | integer    | CONST      | 0     
+	| [04]  | 50              | Cst entiere  |            |            | 0     
+	| [08]  | i               | IDF          | integer    | VAR        | 0     
+	| [09]  | j               | IDF          | integer    | VAR        | 0     
+	| [10]  | k               | IDF          | integer    | VAR        | 0     
+	| [16]  | "Moyenne: "     | Chaine       |            |            | 0     
+	| [23]  | x               | IDF          | integer    | VAR        | 0     
+	| [24]  | y               | IDF          | integer    | VAR        | 0     
+	| [25]  | z               | IDF          | integer    | VAR        | 0     
+	| [28]  | Tabint          | IDF          | integer    | TAB        | 50    
+	| [37]  | Tabfloat        | IDF          | float      | TAB        | 30    
+	| [45]  | 0.0             | Cst float    |            |            | 0     
+	| [47]  | 2.0             | Cst float    |            |            | 0     
+	| [48]  | 100             | Cst entiere  |            |            | 0     
+	| [48]  | 0               | Cst entiere  |            |            | 0     
+	| [49]  | 1               | Cst entiere  |            |            | 0     
+	| [50]  | 2               | Cst entiere  |            |            | 0     
+	| [51]  | 1.5             | Cst float    |            |            | 0     
+	| [52]  | 2.5             | Cst float    |            |            | 0     
+	| [53]  | 3.5             | Cst float    |            |            | 0     
+	| [53]  | 5               | Cst entiere  |            |            | 0     
+	| [60]  | somme           | IDF          | integer    | VAR        | 0     
+	| [66]  | 3.14159         | Cst float    |            |            | 0     
+	| [67]  | M1_iv_2526      | IDF          |            |            | 0     
+	| [75]  | "Valeur finale de x: " | Chaine       |            |            | 0     
+	| [84]  | moyenne         | IDF          | float      | VAR        | 0     
+	| [88]  | Pi              | IDF          | float      | CONST      | 0     
+	| [89]  | "Somme: "       | Chaine       |            |            | 0     
+	| [95]  | 20.0            | Cst float    |            |            | 0     
+
+/******************** Table des symboles Mots cles ****************************/
+	| NomEntite       | CodeEntite   |
+	----------------------------------
+	| BeginProject    | Mot cle      |
+	| Setup           | Mot cle      |
+	| define          | Mot cle      |
+	| integer         | Mot cle      |
+	| float           | Mot cle      |
+	| const           | Mot cle      |
+	| Run             | Mot cle      |
+	| if              | Mot cle      |
+	| AND             | Mot cle      |
+	| OR              | Mot cle      |
+	| NON             | Mot cle      |
+	| then            | Mot cle      |
+	| for             | Mot cle      |
+	| in              | Mot cle      |
+	| to              | Mot cle      |
+	| else            | Mot cle      |
+	| endIf           | Mot cle      |
+	| endfor          | Mot cle      |
+	| loop            | Mot cle      |
+	| while           | Mot cle      |
+	| endloop         | Mot cle      |
+	| out             | Mot cle      |
+	| EndProject      | Mot cle      |
+
+/******************** Table des symboles Separateurs **************************/
+	| NomEntite       | CodeEntite   |
+	----------------------------------
+	| ;               | Separateur   |
+	| :               | Separateur   |
+	| |               | Separateur   |
+	| =               | Separateur   |
+	| [               | Separateur   |
+	| ]               | Separateur   |
+	| {               | Separateur   |
+	| <-              | Separateur   |
+	| (               | Separateur   |
+	| +               | Separateur   |
+	| )               | Separateur   |
+	| *               | Separateur   |
+	| /               | Separateur   |
+	| >               | Separateur   |
+	| <               | Separateur   |
+	| ==              | Separateur   |
+	| }               | Separateur   |
+	| <=              | Separateur   |
+	| !=              | Separateur   |
+	| -               | Separateur   |
+	| ,               | Separateur   |
+
+>> Avant optimisation :
+
+=================== QUADRUPLETS ===================
+000: ( <-   , 10         ,            , x               )
+001: ( <-   , 5          ,            , y               )
+002: ( <-   , 2          ,            , z               )
+003: ( <-   , 2.5        ,            , a               )
+004: ( +    , a          , Pi         , t1              )
+005: ( *    , t1         , 2.0        , t2              )
+006: ( <-   , t2         ,            , b               )
+007: ( *    , y          , z          , t3              )
+008: ( +    , x          , t3         , t4              )
+009: ( <-   , t4         ,            , Tabint[0]       )
+010: ( +    , b          , 3.5        , t5              )
+011: ( /    , t5         , 2.0        , t6              )
+012: ( <-   , t6         ,            , Tabfloat[1]     )
+013: ( >    , x          , y          , t7              )
+014: ( +    , x          , y          , t8              )
+015: ( <    , z          , t8         , t9              )
+016: ( AND  , t7         , t9         , t10             )
+017: ( ==   , y          , 0          , t11             )
+018: ( NOT  , t11        ,            , t12             )
+019: ( OR   , t10        , t12        , t13             )
+020: ( BZ   ,            , t13        , 46              )
+021: ( +    , x          , y          , t14             )
+022: ( +    , t14        , z          , t15             )
+023: ( <-   , t15        ,            , somme           )
+024: ( <-   , 0          ,            , i               )
+025: ( <=   , i          , 10         , t16             )
+026: ( BZ   ,            , t16        , 45              )
+027: ( =    , Tabint[i]  ,            , t17             )
+028: ( +    , t17        , i          , t18             )
+029: ( <-   , t18        ,            , Tabint[i]       )
+030: ( <    , i          , 5          , t19             )
+031: ( =    , Tabint[i]  ,            , t20             )
+032: ( >    , t20        , 10         , t21             )
+033: ( AND  , t19        , t21        , t22             )
+034: ( BZ   ,            , t22        , 39              )
+035: ( =    , Tabint[i]  ,            , t23             )
+036: ( *    , t23        , 1.5        , t24             )
+037: ( <-   , t24        ,            , Tabfloat[i]     )
+038: ( BR   ,            ,            , 42              )
+039: ( =    , Tabint[i]  ,            , t25             )
+040: ( /    , t25        , 2.0        , t26             )
+041: ( <-   , t26        ,            , Tabfloat[i]     )
+042: ( +    , i          , 1          , t27             )
+043: ( <-   , t27        ,            , i               )
+044: ( BR   ,            ,            , 25              )
+045: ( BR   ,            ,            , 47              )
+046: ( <-   , 0          ,            , somme           )
+047: ( <=   , x          , Max        , t28             )
+048: ( !=   , y          , 0          , t29             )
+049: ( <    , z          , 10         , t30             )
+050: ( OR   , t29        , t30        , t31             )
+051: ( AND  , t28        , t31        , t32             )
+052: ( BZ   ,            , t32        , 69              )
+053: ( +    , x          , 1          , t33             )
+054: ( <-   , t33        ,            , x               )
+055: ( ==   , x          , y          , t34             )
+056: ( NOT  , t34        ,            , t35             )
+057: ( BZ   ,            , t35        , 68              )
+058: ( +    , y          , 1          , t36             )
+059: ( <-   , t36        ,            , y               )
+060: ( +    , x          , 1          , t37             )
+061: ( =    , Tabint[0]  ,            , t38             )
+062: ( =    , Tabint[1]  ,            , t39             )
+063: ( +    , t38        , t39        , t40             )
+064: ( -    , x          , y          , t41             )
+065: ( *    , t40        , t41        , t42             )
+066: ( <-   , t42        ,            , Tabint[t37]     )
+067: ( BR   ,            ,            , 55              )
+068: ( BR   ,            ,            , 47              )
+069: ( <-   , 1          ,            , j               )
+070: ( <=   , j          , 20         , t43             )
+071: ( BZ   ,            , t43        , 84              )
+072: ( -    , j          , 1          , t44             )
+073: ( =    , Tabfloat[t44] ,            , t45             )
+074: ( =    , Tabfloat[j] ,            , t46             )
+075: ( +    , t45        , t46        , t47             )
+076: ( /    , t47        , 2.0        , t48             )
+077: ( <-   , t48        ,            , Tabfloat[j]     )
+078: ( =    , Tabfloat[j] ,            , t49             )
+079: ( +    , moyenne    , t49        , t50             )
+080: ( <-   , t50        ,            , moyenne         )
+081: ( +    , j          , 1          , t51             )
+082: ( <-   , t51        ,            , j               )
+083: ( BR   ,            ,            , 70              )
+084: ( /    , moyenne    , 20.0       , t52             )
+085: ( <-   , t52        ,            , moyenne         )
+086: ( IN   ,            ,            , x               )
+087: ( OUT  , "Valeur finale de x: " ,            , x               )
+088: ( OUT  , "Somme: "  ,            , somme           )
+089: ( OUT  , "Moyenne: " ,            , moyenne         )
+
+>> Après optimisation :
+
+=================== QUADRUPLETS ===================
+000: ( <-   , 10         ,            , x               )
+001: ( <-   , 5          ,            , y               )
+002: ( <-   , 2          ,            , z               )
+003: ( <-   , 2.5        ,            , a               )
+004: ( +    , 2.5        , Pi         , t1              )
+005: ( *    , t1         , 2.0        , t2              )
+006: ( <-   , t2         ,            , b               )
+007: ( *    , 5          , 2          , t3              )
+008: ( +    , 10         , t3         , t4              )
+009: ( <-   , t4         ,            , Tabint[0]       )
+010: ( +    , t2         , 3.5        , t5              )
+011: ( /    , t5         , 2.0        , t6              )
+013: ( >    , 10         , 5          , t7              )
+014: ( +    , 10         , 5          , t8              )
+015: ( <    , 2          , t8         , t9              )
+016: ( AND  , t7         , t9         , t10             )
+017: ( ==   , 5          , 0          , t11             )
+018: ( NOT  , t11        ,            , t12             )
+019: ( OR   , t10        , t12        , t13             )
+020: ( BZ   ,            , t13        , 46              )
+022: ( +    , t8         , 2          , t15             )
+023: ( <-   , t15        ,            , somme           )
+024: ( <-   , 0          ,            , i               )
+025: ( <=   , 0          , 10         , t16             )
+026: ( BZ   ,            , t16        , 45              )
+027: ( =    , Tabint[i]  ,            , t17             )
+028: ( +    , t17        , 0          , t18             )
+029: ( <-   , t18        ,            , Tabint[i]       )
+030: ( <    , 0          , 5          , t19             )
+031: ( =    , Tabint[i]  ,            , t20             )
+032: ( >    , t20        , 10         , t21             )
+033: ( AND  , t19        , t21        , t22             )
+034: ( BZ   ,            , t22        , 39              )
+036: ( *    , t20        , 1.5        , t24             )
+038: ( BR   ,            ,            , 42              )
+040: ( /    , t20        , 2.0        , t26             )
+042: ( +    , 0          , 1          , t27             )
+043: ( <-   , t27        ,            , i               )
+044: ( BR   ,            ,            , 25              )
+045: ( BR   ,            ,            , 47              )
+046: ( <-   , 0          ,            , somme           )
+047: ( <=   , 10         , Max        , t28             )
+048: ( !=   , 5          , 0          , t29             )
+049: ( <    , 2          , 10         , t30             )
+050: ( OR   , t29        , t30        , t31             )
+051: ( AND  , t28        , t31        , t32             )
+052: ( BZ   ,            , t32        , 69              )
+053: ( +    , 10         , 1          , t33             )
+054: ( <-   , t33        ,            , x               )
+055: ( ==   , t33        , 5          , t34             )
+056: ( NOT  , t34        ,            , t35             )
+057: ( BZ   ,            , t35        , 68              )
+058: ( +    , 5          , 1          , t36             )
+059: ( <-   , t36        ,            , y               )
+061: ( =    , Tabint[0]  ,            , t38             )
+062: ( =    , Tabint[1]  ,            , t39             )
+063: ( +    , t38        , t39        , t40             )
+064: ( -    , t33        , t36        , t41             )
+065: ( *    , t40        , t41        , t42             )
+067: ( BR   ,            ,            , 55              )
+068: ( BR   ,            ,            , 47              )
+069: ( <-   , 1          ,            , j               )
+070: ( <=   , 1          , 20         , t43             )
+071: ( BZ   ,            , t43        , 84              )
+073: ( =    , Tabfloat[t44] ,            , t45             )
+074: ( =    , Tabfloat[j] ,            , t46             )
+075: ( +    , t45        , t46        , t47             )
+076: ( /    , t47        , 2.0        , t48             )
+077: ( <-   , t48        ,            , Tabfloat[j]     )
+078: ( =    , Tabfloat[j] ,            , t49             )
+079: ( +    , moyenne    , t49        , t50             )
+080: ( <-   , t50        ,            , moyenne         )
+081: ( +    , 1          , 1          , t51             )
+082: ( <-   , t51        ,            , j               )
+083: ( BR   ,            ,            , 70              )
+084: ( /    , t50        , 20.0       , t52             )
+085: ( <-   , t52        ,            , moyenne         )
+086: ( IN   ,            ,            , x               )
+087: ( OUT  , "Valeur finale de x: " ,            , x               )
+088: ( OUT  , "Somme: "  ,            , somme           )
+089: ( OUT  , "Moyenne: " ,            , moyenne         )
+
+>> Compilation terminee avec succes !

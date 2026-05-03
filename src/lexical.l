@@ -9,7 +9,7 @@ int col = 1; /* Suivi de la colonne */
 #define YY_USER_ACTION col += yyleng;
 %}
 
-IDF     [a-zA-Z]([a-zA-Z0-9_]{0,12}[a-zA-Z0-9])?
+IDF     [a-zA-Z]([a-z0-9_]{0,12}[a-zA-Z0-9])?
 ENTIER  [0-9]+
 FLOAT   [0-9]+"."[0-9]+
 CHAINE  \"[^\"]*\"
@@ -95,7 +95,8 @@ CHAINE  \"[^\"]*\"
     return T_CHAINE; 
 }
 
-"%%".* { /* commentaire ligne */ }
+"%%".*           { /* commentaire ligne */ }
+"%".*            { /* commentaire ligne simple */ }
 "//*"([^*]|\*+[^/]|[\n])*"\*//"   { 
     for(int i = 0; yytext[i] != '\0'; i++) {
         if(yytext[i] == '\n') { nb_ligne++; col = 1; }

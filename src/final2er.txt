@@ -1,0 +1,98 @@
+BeginProject M1_iv_2526;
+
+Setup:
+//* 
+    Déclarations avec erreurs
+*//
+
+%% Erreur lexicale : identificateur commence par un chiffre
+define 1var : integer;
+
+%% Erreur lexicale : identificateur trop long (plus de 14 caractères)
+define treslongidentificateur : float;
+
+%% Erreur lexicale : tiret bas consécutif
+define a__b : integer;
+define a : integer;
+
+%% Erreur lexicale : identificateur se termine par un tiret bas
+define c_ : float;
+
+%% Erreur sémantique : constante signée sans parenthèses
+define d : integer = -5;   % devrait être (-5)
+
+%% Erreur syntaxique : oubli du point-virgule
+define e : float = 3.14   % manque ;
+
+%% Erreur sémantique : taille du tableau non constante (variable)
+define variable_taille : integer = 10;
+define TabErr : [integer; variable_taille];   % taille doit être constante
+
+%% Erreur syntaxique : déclaration d'ensemble mal formée (manque '|' ou ':')
+define x y z : integer;   % au lieu de x | y | z
+
+%% Erreur sémantique : constante sans valeur
+const Pi2 : float;   % manque = valeur
+
+%% Erreur syntaxique : const avec initialisation incorrecte
+const Max2 : integer = ;   % valeur manquante
+
+%% Erreur lexicale : constante réelle avec virgule au lieu de point (non autorisé)
+const Gravite : float = 9,81;   % doit être 9.81
+
+Run:
+{
+    %% AFFECTATIONS avec erreurs
+    x <- 10;          % x non déclaré (dans le code correct il y avait x, mais ici on a supprimé ? On laisse pour l'exemple car déclaré ? Ici on n'a pas déclaré x car erreur plus haut. Donc erreur sémantique : variable non déclarée)
+
+    %% Erreur sémantique : type incompatible (float ← integer ? C'est accepté ? Non, dans certains cas il faut conversion explicite ? Le sujet ne précise pas, on peut considérer comme erreur)
+    a <- 5;   % a non déclaré
+
+    %% Erreur sémantique : affectation à constante
+    Pi <- 3.0;   % Pi est une constante
+
+    %% Erreur syntaxique : opérateur d'affectation incorrect
+    b := 2.5;   % au lieu de <-
+
+    %% Erreur syntaxique : indice de tableau non entier (expression)
+    Tabfloat[1.5] <- 3.0;   % indice doit être entier
+
+    %% Erreur syntaxique : oubli de point-virgule
+    somme <- 0   % manque ;
+
+    %% Erreur sémantique : division par zéro (non détectable statiquement, mais on peut ignorer)
+
+    %% Instruction condition avec erreurs
+    if (x > y then:   % manque parenthèse fermante
+        out("Erreur");
+    else {
+        out("Autre");
+    endIf;   % endIf mal écrit (endif attendu?)
+
+    %% Erreur syntaxique : condition mal formée
+    if ( (a + b) ) then:   % condition n'est pas une expression logique valide (manque opérateur de comparaison)
+        out("Condition invalide");
+    endif;
+
+    %% Boucle loop while : condition sans parenthèses
+    loop while x < 10   % manque parenthèses
+        x <- x + 1;
+    endloop;
+
+    %% Boucle for : syntaxe incorrecte
+    for i in 1 to   % limite manquante
+        out("for incorrect");
+    endfor;
+
+    %% Erreur sémantique : utilisation d'une variable non déclarée
+    out(VariableInexistante);
+
+    %% Erreur lexicale : chaîne non fermée
+    out("Texte non fermé);
+
+    %% Commentaire sur plusieurs lignes mal fermé
+    //* Ce commentaire n'est pas fermé
+    out("Ceci est dans le commentaire ? Non, erreur");
+
+}
+EndProject;   % erreur : BeginProject et EndProject doivent correspondre (terminaison par point-virgule ok)
