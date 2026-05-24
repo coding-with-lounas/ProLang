@@ -17,9 +17,7 @@ DATA SEGMENT
     t1 DW ?
     t2 DW ?
     t3 DW ?
-    t4 DW ?
     t5 DW ?
-    t6 DW ?
     t7 DW ?
     t8 DW ?
     t9 DW ?
@@ -27,24 +25,18 @@ DATA SEGMENT
     t11 DW ?
     t12 DW ?
     t13 DW ?
-    t15 DW ?
     t16 DW ?
     t17 DW ?
-    t18 DW ?
     t19 DW ?
     t20 DW ?
     t21 DW ?
     t22 DW ?
-    t24 DW ?
     t25 DW ?
-    t26 DW ?
-    t27 DW ?
     t28 DW ?
     t29 DW ?
     t30 DW ?
     t31 DW ?
     t32 DW ?
-    t33 DW ?
     t34 DW ?
     t35 DW ?
     t36 DW ?
@@ -53,17 +45,12 @@ DATA SEGMENT
     t39 DW ?
     t40 DW ?
     t41 DW ?
-    t42 DW ?
     t43 DW ?
     t44 DW ?
     t45 DW ?
     t46 DW ?
     t47 DW ?
-    t48 DW ?
     t49 DW ?
-    t50 DW ?
-    t51 DW ?
-    t52 DW ?
 DATA ENDS
 
 CODE SEGMENT
@@ -81,9 +68,6 @@ etiq_1:
 etiq_2:
     MOV AX, 2
     MOV z, AX
-etiq_3:
-    MOV AX, 2
-    MOV a, AX
 etiq_4:
     MOV AX, 2
     ADD AX, Pi
@@ -93,9 +77,6 @@ etiq_5:
     MOV BX, 2
     MUL BX
     MOV t2, AX
-etiq_6:
-    MOV AX, t2
-    MOV b, AX
 etiq_7:
     MOV AX, 5
     MOV BX, 2
@@ -104,12 +85,11 @@ etiq_7:
 etiq_8:
     MOV AX, 10
     ADD AX, t3
-    MOV t4, AX
-etiq_9:
-    MOV BX, 0
-    SHL BX, 1
-    MOV AX, t4
-    MOV Tabint[BX], AX
+    PUSH AX
+    MOV SI, 0
+    SHL SI, 1
+    POP AX
+    MOV Tabint[SI], AX
 etiq_10:
     MOV AX, t2
     ADD AX, 3
@@ -119,16 +99,15 @@ etiq_11:
     XOR DX, DX
     MOV BX, 2
     DIV BX
-    MOV t6, AX
-etiq_12:
-    MOV BX, 1
-    SHL BX, 1
-    MOV AX, t6
-    MOV Tabfloat[BX], AX
+    PUSH AX
+    MOV SI, 1
+    SHL SI, 1
+    POP AX
+    MOV Tabfloat[SI], AX
 etiq_13:
     MOV AX, 10
     CMP AX, 5
-    JG true_13
+    JG  true_13
     MOV AX, 0
     MOV t7, AX
     JMP end_cmp_13
@@ -143,7 +122,7 @@ etiq_14:
 etiq_15:
     MOV AX, 2
     CMP AX, t8
-    JL true_15
+    JL  true_15
     MOV AX, 0
     MOV t9, AX
     JMP end_cmp_15
@@ -158,7 +137,7 @@ etiq_16:
 etiq_17:
     MOV AX, 5
     CMP AX, 0
-    JE true_17
+    JE  true_17
     MOV AX, 0
     MOV t11, AX
     JMP end_cmp_17
@@ -183,9 +162,6 @@ skip_jmp_20:
 etiq_22:
     MOV AX, t8
     ADD AX, 2
-    MOV t15, AX
-etiq_23:
-    MOV AX, t15
     MOV somme, AX
 etiq_24:
     MOV AX, 0
@@ -215,16 +191,15 @@ etiq_27:
 etiq_28:
     MOV AX, t17
     ADD AX, i
-    MOV t18, AX
-etiq_29:
-    MOV BX, i
-    SHL BX, 1
-    MOV AX, t18
-    MOV Tabint[BX], AX
+    PUSH AX
+    MOV SI, i
+    SHL SI, 1
+    POP AX
+    MOV Tabint[SI], AX
 etiq_30:
     MOV AX, i
     CMP AX, 5
-    JL true_30
+    JL  true_30
     MOV AX, 0
     MOV t19, AX
     JMP end_cmp_30
@@ -240,7 +215,7 @@ etiq_31:
 etiq_32:
     MOV AX, t20
     CMP AX, 10
-    JG true_32
+    JG  true_32
     MOV AX, 0
     MOV t21, AX
     JMP end_cmp_32
@@ -262,12 +237,11 @@ etiq_36:
     MOV AX, t20
     MOV BX, 1
     MUL BX
-    MOV t24, AX
-etiq_37:
-    MOV BX, i
-    SHL BX, 1
-    MOV AX, t24
-    MOV Tabfloat[BX], AX
+    PUSH AX
+    MOV SI, i
+    SHL SI, 1
+    POP AX
+    MOV Tabfloat[SI], AX
 etiq_38:
     JMP etiq_42
 etiq_39:
@@ -280,18 +254,14 @@ etiq_40:
     XOR DX, DX
     MOV BX, 2
     DIV BX
-    MOV t26, AX
-etiq_41:
-    MOV BX, i
-    SHL BX, 1
-    MOV AX, t26
-    MOV Tabfloat[BX], AX
+    PUSH AX
+    MOV SI, i
+    SHL SI, 1
+    POP AX
+    MOV Tabfloat[SI], AX
 etiq_42:
     MOV AX, i
     ADD AX, 1
-    MOV t27, AX
-etiq_43:
-    MOV AX, t27
     MOV i, AX
 etiq_44:
     JMP etiq_25
@@ -325,7 +295,7 @@ end_cmp_48:
 etiq_49:
     MOV AX, z
     CMP AX, 10
-    JL true_49
+    JL  true_49
     MOV AX, 0
     MOV t30, AX
     JMP end_cmp_49
@@ -350,14 +320,11 @@ skip_jmp_52:
 etiq_53:
     MOV AX, x
     ADD AX, 1
-    MOV t33, AX
-etiq_54:
-    MOV AX, t33
     MOV x, AX
 etiq_55:
     MOV AX, x
     CMP AX, y
-    JE true_55
+    JE  true_55
     MOV AX, 0
     MOV t34, AX
     JMP end_cmp_55
@@ -408,12 +375,11 @@ etiq_65:
     MOV AX, t40
     MOV BX, t41
     MUL BX
-    MOV t42, AX
-etiq_66:
-    MOV BX, t37
-    SHL BX, 1
-    MOV AX, t42
-    MOV Tabint[BX], AX
+    PUSH AX
+    MOV SI, t37
+    SHL SI, 1
+    POP AX
+    MOV Tabint[SI], AX
 etiq_67:
     JMP etiq_55
 etiq_68:
@@ -461,12 +427,11 @@ etiq_76:
     XOR DX, DX
     MOV BX, 2
     DIV BX
-    MOV t48, AX
-etiq_77:
-    MOV BX, j
-    SHL BX, 1
-    MOV AX, t48
-    MOV Tabfloat[BX], AX
+    PUSH AX
+    MOV SI, j
+    SHL SI, 1
+    POP AX
+    MOV Tabfloat[SI], AX
 etiq_78:
     MOV BX, j
     SHL BX, 1
@@ -475,16 +440,10 @@ etiq_78:
 etiq_79:
     MOV AX, moyenne
     ADD AX, t49
-    MOV t50, AX
-etiq_80:
-    MOV AX, t50
     MOV moyenne, AX
 etiq_81:
     MOV AX, j
     ADD AX, 1
-    MOV t51, AX
-etiq_82:
-    MOV AX, t51
     MOV j, AX
 etiq_83:
     JMP etiq_70
@@ -493,18 +452,15 @@ etiq_84:
     XOR DX, DX
     MOV BX, 20
     DIV BX
-    MOV t52, AX
-etiq_85:
-    MOV AX, t52
     MOV moyenne, AX
 etiq_86:
-    ; Code pour lecture de x
+    ; IN : lecture de x
 etiq_87:
-    ; Code pour ecriture de x
+    ; OUT : ecriture de x
 etiq_88:
-    ; Code pour ecriture de somme
+    ; OUT : ecriture de somme
 etiq_89:
-    ; Code pour ecriture de moyenne
+    ; OUT : ecriture de moyenne
 etiq_90:
     MOV AH, 4CH
     INT 21H

@@ -1,0 +1,563 @@
+FACULTÉ INFORMATIQUE - USTHB
+
+2025-2026
+
+OPTIMISATION DU
+CODE INTERMÉDIAIRE
+
+98
+
+FACULTÉ INFORMATIQUE - USTHB
+
+2025-2026
+
+Optimisation du code intermédiaire
+Une étape clé du processus de compilation visant à améliorer l'efficacité du programme sans en
+modifier la sémantique.
+Elle intervient après la génération du code intermédiaire et avant la génération du code machine.
+Son objectif est d'optimiser l'exécution du code en le rendant plus rapide et moins
+consommateur de ressources, sans en altérer les fonctionnalités.
+
+Parmi ces opérations, on trouve:
+Propagation de copie
+Propagation d’expressions
+Élimination des expressions redondantes
+Simplification algébrique
+Élimination de code inutile
+SAYOUD Lynda
+
+99
+
+FACULTÉ INFORMATIQUE - USTHB
+
+2025-2026
+
+1. Propagation de copie
+Une technique qui consiste à remplacer une variable par sa valeur ou une autre variable à
+laquelle elle a été affectée.
+Cela permet d'éliminer les affectations inutiles et d'améliorer l'efficacité du code.
+Principe:
+Lorsqu'une variable x est affectée à une autre variable y (y = x), on peut directement remplacer y par
+x dans le reste du programme (si aucune autre affectation ne modifie x ou y entre-temps).
+Exemple:
+Si deux variables sont égales on
+
+Avant optimisation:
+
+remplace une par l’autre afin de
+
+Après optimisation:
+
+t1= t2 ;
+
+l’éliminer après.
+
+t3= 4* t1 ;
+
+t3= 4* t2 ;
+
+SAYOUD Lynda
+
+100
+
+FACULTÉ INFORMATIQUE - USTHB
+
+2025-2026
+
+Cas où la propagation n'est pas possible:
+Elle n'est pas possible si la variable affectée change avant d'être utilisée.
+Exemple:
+t1= t2 ;
+t1= t3;
+
+❌ Propagation de copie impossible
+
+t4= t1 + t5 ;
+La propagation de t1 = t2; est inutile car t1 est écrasé immédiatement après avec t1 = t3;.
+Si on remplaçait t1 par t2 dans t4 = t1 + t5;, cela donnerait t4 = t2 + t5;, ce qui serait incorrect, car t1 a
+été modifié avant d'être utilisé.
+La bonne valeur de t1 lors de son utilisation est t3, donc seule la dernière affectation est pertinente.
+
+SAYOUD Lynda
+
+101
+
+FACULTÉ INFORMATIQUE - USTHB
+
+2025-2026
+
+2. Propagation d’expression
+Principe:
+Si une variable stocke une expression mais n'est utilisée qu'une seule fois, alors il est inutile de la
+garder. On peut directement remplacer son utilisation par l'expression qu'elle contenait.
+Exemple:
+Avant optimisation:
+
+Après optimisation:
+
+t1= expr;
+
+t3= 4* expr ;
+
+t3= 4* t1 ;
+
+Remarque:
+Si la même expression est utilisée plusieurs fois, alors il vaut mieux garder la variable pour éviter de
+recalculer plusieurs fois.
+SAYOUD Lynda
+
+102
+
+FACULTÉ INFORMATIQUE - USTHB
+
+2025-2026
+
+3. Élimination des expressions redondantes (ou
+communes)
+Principe:
+Cette technique consiste à éviter de recalculer une expression si elle a déjà été évaluée
+auparavant et que ses variables n’ont pas changé. Au lieu de recalculer, on réutilise le résultat
+stocké dans une variable temporaire.
+Autrement dit,
+Si une expression E apparaît plusieurs fois et que les variables qui la composent n’ont pas été
+modifiées, on remplace ses occurrences suivantes par la variable qui stockait E.
+
+SAYOUD Lynda
+
+103
+
+FACULTÉ INFORMATIQUE - USTHB
+
+2025-2026
+
+Exemple:
+Avant optimisation:
+t1 = a + b;
+t2 = c * d;
+t3 = a + b; // Redondant, car déjà calculé dans t1
+t4 = t3 * e;
+
+Après optimisation:
+t1 = a + b;
+t2 = c * d;
+t4 = t1 * e; // Remplacement de t3 par t1
+
+a + b est recalculé une deuxième fois (t3 = a + b;), ce qui est inutile.
+Donc, on évite un recalcul en réutilisant t1 au lieu de recalculer a + b.
+Remarque:
+Si l'une des variables de l'expression change entre deux utilisations, la valeur recalculée peut être
+différente et l’optimisation ne peut pas être appliquée.
+SAYOUD Lynda
+
+104
+
+FACULTÉ INFORMATIQUE - USTHB
+
+2025-2026
+
+4. Simplification algébrique
+Principe:
+Elle consiste à remplacer certaines opérations coûteuses par des opérations équivalentes mais
+plus efficaces.
+1.Optimisation des multiplications
+La multiplication est plus coûteuse que l’addition, quelque soit la machine.
+Si une des opérandes est une constante, on peut remplacer la multiplication par une addition.
+Exemple:
+
+SAYOUD Lynda
+
+Avant optimisation:
+
+Après optimisation:
+
+Y = Y *2 ;
+
+Y= Y+Y;
+
+105
+
+FACULTÉ INFORMATIQUE - USTHB
+
+2025-2026
+
+2. Élimination des calculs inutiles
+Si une opération n’a aucun effet sur le résultat final, elle est supprimée.
+Exemple:
+
+SAYOUD Lynda
+
+Avant optimisation:
+
+Après optimisation:
+
+X = Y + 1 - 1;
+
+X = Y;
+
+Avant optimisation:
+
+Après optimisation:
+
+X = Y * 1;
+
+X = Y;
+
+Avant optimisation:
+
+Après optimisation:
+
+X = Y+ 0 ;
+
+X = Y;
+106
+
+FACULTÉ INFORMATIQUE - USTHB
+
+2025-2026
+
+5. Élimination de code inutile
+Principe:
+Elle consiste à éliminer les calculs et les instructions qui n'ont aucun impact sur le résultat final du
+programme, comme :
+Calculs dont le résultat n'est jamais utilisé:
+Si une variable est assignée mais jamais utilisée après, l'opération qui la produit est inutile et peut
+être éliminé.
+Exemple:
+
+Avant optimisation:
+
+Après optimisation:
+
+x=t3;
+
+a[t2]=t5;
+
+a[t2]=t5;
+
+a[t4]=t3;
+
+a[t4]=t3;
+//x est inutile
+SAYOUD Lynda
+
+107
+
+FACULTÉ INFORMATIQUE - USTHB
+
+Exemple:
+Optimisez le code dans la portion de programme
+suivante:
+
+2025-2026
+
+t6 = 4*j
+t8 = j‐1
+t9 = 4 * t8
+temp = A[t9]
+t10 = j+1
+t11 = t10‐1
+t12 = 4 * t11
+t13 = A[t12]
+t14 = j‐1
+t15 = 4 * t14
+A[t15] = t13
+t16 = j+1
+t17 = t16‐1
+t18 = 4 * t17
+
+SAYOUD Lynda
+
+A[t18] = temp
+
+108
+
+FACULTÉ INFORMATIQUE - USTHB
+
+Etape 1:
+Propagation d’expression et
+Simplification algébrique
+t11=t10‐1
+
+2025-2026
+
+t6 = 4*j
+t8 = j‐1
+t9 = 4 * t8
+temp = A[t9]
+t10 = j+1
+
+=> t11= j+1‐1 // propagation d’expr
+
+t11 = t10‐1
+
+=> t11= j // Simplification algébrique
+
+t12 = 4 * t11
+
+• Propagation de copie
+
+t13 = A[t12]
+
+t12=4*t11 => t12=4*j
+• Élimination de code inutile
+pour t10 et t11
+De meme pour t16, t17 et t18
+
+t14 = j‐1
+t15 = 4 * t14
+A[t15] = t13
+t16 = j+1
+t17 = t16‐1
+
+t6 = 4*j
+t8 = j‐1
+t9 = 4 * t8
+temp = A[t9]
+t12 = 4 * j
+t13 = A[t12]
+t14 = j‐1
+t15 = 4 * t14
+A[t15] = t13
+t18 = 4 * j
+A[t18] = temp
+
+t18 = 4 * t17
+SAYOUD Lynda
+
+A[t18] = temp
+
+109
+
+Etape 2:
+Élimination d’expressions redondantes:
+
+t6 = 4*j
+
+t12=4*j => t12=t6
+
+t8 = j‐1
+
+t14=j‐1 => t14=t8
+
+t9 = 4 * t8
+
+t18=4*j => t18=t6
+Propagation de copie
+A[t12] => A[t6] et A[t18] => A[t6]
+t15= 4*t14 => t15=4*t8
+Elimination de code inutile
+Pour t12, t14 et t18
+
+temp = A[t9]
+t12 = 4 * j
+t13 = A[t12]
+t14 = j‐1
+t15 = 4 * t14
+A[t15] = t13
+t18 = 4 * j
+
+t6 = 4*j
+t8 = j‐1
+t9 = 4 * t8
+temp = A[t9]
+t13 = A[t6]
+t15 = 4 * t8
+A[t15] = t13
+A[t6] = temp
+
+A[t18] = temp
+
+SAYOUD Lynda
+
+110
+
+FACULTÉ INFORMATIQUE - USTHB
+
+2025-2026
+
+Etape 3:
+Élimination d’expressions
+
+t6 = 4*j
+
+t6 = 4*j
+
+t6 = 4*j
+
+redondantes
+
+t8 = j‐1
+
+t8 = j‐1
+
+t9 = 4 * (j -1)
+
+t15=4*t8 => t15=t9
+
+t9 = 4 * t8
+
+t9 = 4 * t8
+
+temp = A[t9]
+
+Propagation de copie
+
+temp = A[t9]
+
+temp = A[t9]
+
+t13 = A[t6]
+
+t13 = A[t6]
+
+t13 = A[t6]
+
+A[t9] = t13
+
+t15 = 4 * t8
+
+A[t9] = t13
+
+A[t6] = temp
+
+A[t15] = t13
+
+A[t6] = temp
+
+A[t15] => A[t9]
+Élimination de code inutile
+t15
+
+A[t6] = temp
+
+Propagation d’expr
+t8 => (j -1)
+
+SAYOUD Lynda
+
+111
+
+En résumé:
+
+FACULTÉ INFORMATIQUE - USTHB
+
+2025-2026
+
+t6 = 4*j
+t8 = j‐1
+
+t6 = 4*j
+
+t6 = 4*j
+
+t9 = 4 * t8
+
+t8 = j‐1
+
+t8 = j‐1
+
+temp = A[t9]
+
+t9 = 4 * t8
+
+t9 = 4 * t8
+
+t10 = j+1
+
+temp = A[t9]
+
+temp = A[t9]
+
+t11 = t10‐1
+
+t12 = 4 * j
+
+t12 = t6
+
+t12 = 4 * t11
+
+t13 = A[t12]
+
+t13 = A[t6]
+
+t13 = A[t12]
+
+t14 = j‐1
+
+t14 = t8
+
+t14 = j‐1
+
+t15 = 4 * t14
+
+t15 = 4 * t8
+
+t15 = 4 * t14
+
+A[t15] = t13
+
+A[t15] = t13
+
+A[t15] = t13
+
+t18 = 4 * j
+
+t18 = t6
+
+t16 = j+1
+
+A[t18] = temp
+
+A[t6] = temp
+
+t6 = 4*j
+
+t6 = 4*j
+
+t8 = j‐1
+
+t8 = j‐1
+
+t9 = 4 * t8
+
+t9 = 4 * (j-1)
+
+_temp = A[t9]
+
+_temp = A[t9]
+
+t13 = A[t6]
+
+t13 = A[t6]
+
+A[t9] = t13
+
+A[t9] = t13
+
+A[t6] = temp
+
+A[t6] = temp
+
+t17 = t16‐1
+t18 = 4 * t17
+A[t18] = temp
+
+SAYOUD Lynda
+
+112
+
+FACULTÉ INFORMATIQUE - USTHB
+
+2025-2026
+
+Implementation
+Comment sauvegarder et mettre à jour l’état des variables et des temporaires?
+Dans quel ordre appliquer les opérations ?
+Combien de fois doit‐on repasser le code ?
+implémentation optimale ?
+
+SAYOUD Lynda
+
+113
+
+

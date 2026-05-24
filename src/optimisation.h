@@ -254,12 +254,138 @@ void code_inutile() {
     } while (changed);
 }
 
+// 6. Pliage des temporaires à usage unique
+// Quand un temporaire t est défini une fois et utilisé exactement une
+// fois sous la forme (<-, t, vide, var), on substitue directement var
+// comme résultat du quad producteur et on supprime la copie.
+// Ex: (+, t3, 5, t5) + (<-, t5, vide, g)  =>  (+, t3, 5, g)
+void plier_temporaires() {
+    bool changed;
+    do {
+        changed = false;
+        for (int i = 0; i < qc; i++) {
+            if (strcmp(quad[i].oper, "vide") == 0) continue;
+            if (!is_temp(quad[i].res)) continue;
+            // Ne pas plier les sauts ou I/O
+            if (quad[i].oper[0] == 'B' ||
+                strcmp(quad[i].oper, "OUT") == 0 ||
+                strcmp(quad[i].oper, "IN")  == 0) continue;
+
+            char t[100];
+            strcpy(t, quad[i].res);
+
+            // Compter les usages de t dans tout le programme
+            int use_count = 0;
+            int use_idx   = -1;
+            for (int j = 0; j < qc; j++) {
+                if (j == i) continue;
+                if (strcmp(quad[j].oper, "vide") == 0) continue;
+
+                // Redéfinition → plusieurs définitions, ne pas plier
+                if (strcmp(quad[j].res, t) == 0) { use_count += 100; break; }
+
+                if (strcmp(quad[j].op1, t) == 0 || strcmp(quad[j].op2, t) == 0 ||
+                    (strcmp(quad[j].oper, "OUT") == 0 && strcmp(quad[j].res, t) == 0)) {
+                    use_count++;
+                    use_idx = j;
+                }
+            }
+
+            // Exactement un usage et c'est une copie simple (<-, t, vide, var)
+            if (use_count == 1 && use_idx >= 0 &&
+                strcmp(quad[use_idx].oper, "<-") == 0 &&
+                strcmp(quad[use_idx].op1,  t)    == 0 &&
+                strcmp(quad[use_idx].op2, "vide") == 0) {
+
+                // Remplacer le résultat du quad producteur par var
+                strcpy(quad[i].res, quad[use_idx].res);
+                // Supprimer la copie devenue inutile
+                strcpy(quad[use_idx].oper, "vide");
+                strcpy(quad[use_idx].op1,  "vide");
+                strcpy(quad[use_idx].op2,  "vide");
+                strcpy(quad[use_idx].res,  "vide");
+                changed = true;
+            }
+        }
+    } while (changed);
+}
+
+// 7. Élimination de code mort global (liveness analysis)
+// Supprime toute affectation dont la destination n'est jamais lue
+// dans TOUT le programme (ni en op1/op2, ni comme cible d'un OUT/IN).
+void elimination_code_mort_global() {
+    bool changed;
+    do {
+        changed = false;
+        for (int i = 0; i < qc; i++) {
+            if (strcmp(quad[i].oper, "vide") == 0) continue;
+            // Ne jamais supprimer OUT, IN ou sauts
+            if (quad[i].oper[0] == 'B' ||
+                strcmp(quad[i].oper, "OUT") == 0 ||
+                strcmp(quad[i].oper, "IN")  == 0) continue;
+            // Doit avoir un résultat écrit
+            if (strcmp(quad[i].res, "vide") == 0) continue;
+            // Ignorer les affectations dans des tableaux
+            if (strchr(quad[i].res, '[') != NULL) continue;
+
+            char res[100];
+            strcpy(res, quad[i].res);
+
+            // Chercher si res est lu quelque part dans tout le programme
+            bool used = false;
+            for (int j = 0; j < qc; j++) {
+                if (j == i) continue;
+                if (strcmp(quad[j].oper, "vide") == 0) continue;
+
+                // Utilisé comme opérande ?
+                if (strcmp(quad[j].op1, res) == 0 || strcmp(quad[j].op2, res) == 0) {
+                    used = true; break;
+                }
+                // Cible d'un OUT ?
+                if (strcmp(quad[j].oper, "OUT") == 0 && strcmp(quad[j].res, res) == 0) {
+                    used = true; break;
+                }
+                // Cible d'un IN ?
+                if (strcmp(quad[j].oper, "IN") == 0 && strcmp(quad[j].res, res) == 0) {
+                    used = true; break;
+                }
+                // Utilisé comme indice de tableau ?
+                if (is_used_in_array(quad[j].op1, res) ||
+                    is_used_in_array(quad[j].op2, res) ||
+                    is_used_in_array(quad[j].res,  res)) {
+                    used = true; break;
+                }
+                // Condition de saut ?
+                if (quad[j].oper[0] == 'B' &&
+                    (strcmp(quad[j].op1, res) == 0 || strcmp(quad[j].op2, res) == 0)) {
+                    used = true; break;
+                }
+            }
+
+            if (!used) {
+                strcpy(quad[i].oper, "vide");
+                strcpy(quad[i].op1,  "vide");
+                strcpy(quad[i].op2,  "vide");
+                strcpy(quad[i].res,  "vide");
+                changed = true;
+            }
+        }
+    } while (changed);
+}
+
 void optimiser_quadruplets() {
-    // Ordre suggere (Élimination redondance, simplification,  propagation, puis inutile)
+    // 1. Simplification algebrique  (+0, *1, *0, *2->+)
     simplification_algebrique();
+    // 2. Elimination des sous-expressions communes (CSE)
     elimination_redondance();
+    // 3. Propagation de copie
     propagation_copie();
+    // 4. Elimination code mort local (bloc de base)
     code_inutile();
+    // 5. Pliage des temporaires a usage unique  (t5 -> g directement)
+    plier_temporaires();
+    // 6. Elimination de code mort global (a, b, d, f jamais lus)
+    elimination_code_mort_global();
 }
 
 #endif
