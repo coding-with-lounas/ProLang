@@ -51,6 +51,12 @@ DATA SEGMENT
     t46 DW ?
     t47 DW ?
     t49 DW ?
+    
+    ; --- Chaines de caracteres pour simuler printf ---
+    msg_bx DB "Entrez la valeur de x : $"
+    msg_x DB "x = $"
+    msg_somme DB "somme = $"
+    msg_moyenne DB "moyenne = $"
 DATA ENDS
 
 CODE SEGMENT
@@ -454,15 +460,121 @@ etiq_84:
     DIV BX
     MOV moyenne, AX
 etiq_86:
-    ; IN : lecture de x
+    ; scanf("%d", &x)
+    MOV AH, 09H
+    LEA DX, msg_bx
+    INT 21H
+    CALL READ_INT
+    MOV x, CX
 etiq_87:
-    ; OUT : ecriture de x
+    ; printf("x = %d\n", x)
+    MOV AH, 09H
+    LEA DX, msg_x
+    INT 21H
+    MOV AX, x
+    CALL PRINT_INT
 etiq_88:
-    ; OUT : ecriture de somme
+    ; printf("somme = %d\n", somme)
+    MOV AH, 09H
+    LEA DX, msg_somme
+    INT 21H
+    MOV AX, somme
+    CALL PRINT_INT
 etiq_89:
-    ; OUT : ecriture de moyenne
+    ; printf("moyenne = %d\n", moyenne)
+    MOV AH, 09H
+    LEA DX, msg_moyenne
+    INT 21H
+    MOV AX, moyenne
+    CALL PRINT_INT
 etiq_90:
     MOV AH, 4CH
     INT 21H
+
+; ====================================================
+; Sous-programmes d'entrees / sorties
+; ====================================================
+
+; Procedure pour lire un entier clavier (retour dans CX)
+READ_INT PROC
+    PUSH AX
+    PUSH BX
+    PUSH DX
+    XOR CX, CX
+read_loop:
+    MOV AH, 01H
+    INT 21H
+    CMP AL, 13 ; Entree
+    JE read_done
+    CMP AL, '0'
+    JB read_loop
+    CMP AL, '9'
+    JA read_loop
+    SUB AL, '0'
+    XOR AH, AH
+    PUSH AX
+    MOV AX, CX
+    MOV BX, 10
+    MUL BX
+    POP BX
+    ADD AX, BX
+    MOV CX, AX
+    JMP read_loop
+read_done:
+    ; Retour a la ligne
+    MOV AH, 02H
+    MOV DL, 13
+    INT 21H
+    MOV DL, 10
+    INT 21H
+    POP DX
+    POP BX
+    POP AX
+    RET
+READ_INT ENDP
+
+; Procedure pour afficher un entier (valeur dans AX)
+PRINT_INT PROC
+    PUSH AX
+    PUSH BX
+    PUSH CX
+    PUSH DX
+    XOR CX, CX
+    MOV BX, 10
+    CMP AX, 0
+    JGE start_print
+    PUSH AX
+    MOV AH, 02H
+    MOV DL, '-'
+    INT 21H
+    POP AX
+    NEG AX
+start_print:
+print_loop1:
+    XOR DX, DX
+    DIV BX
+    PUSH DX
+    INC CX
+    CMP AX, 0
+    JNE print_loop1
+print_loop2:
+    POP DX
+    ADD DL, '0'
+    MOV AH, 02H
+    INT 21H
+    LOOP print_loop2
+    ; Retour a la ligne
+    MOV AH, 02H
+    MOV DL, 13
+    INT 21H
+    MOV DL, 10
+    INT 21H
+    POP DX
+    POP CX
+    POP BX
+    POP AX
+    RET
+PRINT_INT ENDP
+
 CODE ENDS
 END MAIN

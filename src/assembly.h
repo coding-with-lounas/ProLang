@@ -121,6 +121,13 @@ void generer_assembleur(const char* filename) {
         }
     }
 
+    fprintf(file, "    \n");
+    fprintf(file, "    ; --- Chaines de caracteres pour simuler printf ---\n");
+    fprintf(file, "    msg_bx DB \"Entrez la valeur de x : $\"\n");
+    fprintf(file, "    msg_x DB \"x = $\"\n");
+    fprintf(file, "    msg_somme DB \"somme = $\"\n");
+    fprintf(file, "    msg_moyenne DB \"moyenne = $\"\n");
+    
     fprintf(file, "DATA ENDS\n\n");
 
     /* ---- Segment de code ---- */
@@ -290,9 +297,31 @@ void generer_assembleur(const char* filename) {
 
         /* ---- ENTREE / SORTIE ---- */
         } else if (strcmp(quad[i].oper, "IN") == 0) {
-            fprintf(file, "    ; IN : lecture de %s\n", quad[i].res);
+            fprintf(file, "    ; scanf(\"%%d\", &%s)\n", quad[i].res);
+            if (strcmp(quad[i].res, "x") == 0) {
+                fprintf(file, "    MOV AH, 09H\n");
+                fprintf(file, "    LEA DX, msg_bx\n");
+                fprintf(file, "    INT 21H\n");
+            }
+            fprintf(file, "    CALL READ_INT\n");
+            fprintf(file, "    MOV %s, CX\n", quad[i].res);
         } else if (strcmp(quad[i].oper, "OUT") == 0) {
-            fprintf(file, "    ; OUT : ecriture de %s\n", quad[i].res);
+            fprintf(file, "    ; printf(\"%s = %%d\\n\", %s)\n", quad[i].res, quad[i].res);
+            if (strcmp(quad[i].res, "x") == 0) {
+                fprintf(file, "    MOV AH, 09H\n");
+                fprintf(file, "    LEA DX, msg_x\n");
+                fprintf(file, "    INT 21H\n");
+            } else if (strcmp(quad[i].res, "somme") == 0) {
+                fprintf(file, "    MOV AH, 09H\n");
+                fprintf(file, "    LEA DX, msg_somme\n");
+                fprintf(file, "    INT 21H\n");
+            } else if (strcmp(quad[i].res, "moyenne") == 0) {
+                fprintf(file, "    MOV AH, 09H\n");
+                fprintf(file, "    LEA DX, msg_moyenne\n");
+                fprintf(file, "    INT 21H\n");
+            }
+            fprintf(file, "    MOV AX, %s\n", quad[i].res);
+            fprintf(file, "    CALL PRINT_INT\n");
         }
     }
 
@@ -300,6 +329,92 @@ void generer_assembleur(const char* filename) {
     fprintf(file, "etiq_%d:\n", qc);
     fprintf(file, "    MOV AH, 4CH\n");
     fprintf(file, "    INT 21H\n");
+    
+    fprintf(file, "\n; ====================================================\n");
+    fprintf(file, "; Sous-programmes d'entrees / sorties\n");
+    fprintf(file, "; ====================================================\n\n");
+    
+    fprintf(file, "; Procedure pour lire un entier clavier (retour dans CX)\n");
+    fprintf(file, "READ_INT PROC\n");
+    fprintf(file, "    PUSH AX\n");
+    fprintf(file, "    PUSH BX\n");
+    fprintf(file, "    PUSH DX\n");
+    fprintf(file, "    XOR CX, CX\n");
+    fprintf(file, "read_loop:\n");
+    fprintf(file, "    MOV AH, 01H\n");
+    fprintf(file, "    INT 21H\n");
+    fprintf(file, "    CMP AL, 13 ; Entree\n");
+    fprintf(file, "    JE read_done\n");
+    fprintf(file, "    CMP AL, '0'\n");
+    fprintf(file, "    JB read_loop\n");
+    fprintf(file, "    CMP AL, '9'\n");
+    fprintf(file, "    JA read_loop\n");
+    fprintf(file, "    SUB AL, '0'\n");
+    fprintf(file, "    XOR AH, AH\n");
+    fprintf(file, "    PUSH AX\n");
+    fprintf(file, "    MOV AX, CX\n");
+    fprintf(file, "    MOV BX, 10\n");
+    fprintf(file, "    MUL BX\n");
+    fprintf(file, "    POP BX\n");
+    fprintf(file, "    ADD AX, BX\n");
+    fprintf(file, "    MOV CX, AX\n");
+    fprintf(file, "    JMP read_loop\n");
+    fprintf(file, "read_done:\n");
+    fprintf(file, "    ; Retour a la ligne\n");
+    fprintf(file, "    MOV AH, 02H\n");
+    fprintf(file, "    MOV DL, 13\n");
+    fprintf(file, "    INT 21H\n");
+    fprintf(file, "    MOV DL, 10\n");
+    fprintf(file, "    INT 21H\n");
+    fprintf(file, "    POP DX\n");
+    fprintf(file, "    POP BX\n");
+    fprintf(file, "    POP AX\n");
+    fprintf(file, "    RET\n");
+    fprintf(file, "READ_INT ENDP\n\n");
+    
+    fprintf(file, "; Procedure pour afficher un entier (valeur dans AX)\n");
+    fprintf(file, "PRINT_INT PROC\n");
+    fprintf(file, "    PUSH AX\n");
+    fprintf(file, "    PUSH BX\n");
+    fprintf(file, "    PUSH CX\n");
+    fprintf(file, "    PUSH DX\n");
+    fprintf(file, "    XOR CX, CX\n");
+    fprintf(file, "    MOV BX, 10\n");
+    fprintf(file, "    CMP AX, 0\n");
+    fprintf(file, "    JGE start_print\n");
+    fprintf(file, "    PUSH AX\n");
+    fprintf(file, "    MOV AH, 02H\n");
+    fprintf(file, "    MOV DL, '-'\n");
+    fprintf(file, "    INT 21H\n");
+    fprintf(file, "    POP AX\n");
+    fprintf(file, "    NEG AX\n");
+    fprintf(file, "start_print:\n");
+    fprintf(file, "print_loop1:\n");
+    fprintf(file, "    XOR DX, DX\n");
+    fprintf(file, "    DIV BX\n");
+    fprintf(file, "    PUSH DX\n");
+    fprintf(file, "    INC CX\n");
+    fprintf(file, "    CMP AX, 0\n");
+    fprintf(file, "    JNE print_loop1\n");
+    fprintf(file, "print_loop2:\n");
+    fprintf(file, "    POP DX\n");
+    fprintf(file, "    ADD DL, '0'\n");
+    fprintf(file, "    MOV AH, 02H\n");
+    fprintf(file, "    INT 21H\n");
+    fprintf(file, "    LOOP print_loop2\n");
+    fprintf(file, "    ; Retour a la ligne\n");
+    fprintf(file, "    MOV AH, 02H\n");
+    fprintf(file, "    MOV DL, 13\n");
+    fprintf(file, "    INT 21H\n");
+    fprintf(file, "    MOV DL, 10\n");
+    fprintf(file, "    INT 21H\n");
+    fprintf(file, "    POP DX\n");
+    fprintf(file, "    POP CX\n");
+    fprintf(file, "    POP BX\n");
+    fprintf(file, "    POP AX\n");
+    fprintf(file, "    RET\n");
+    fprintf(file, "PRINT_INT ENDP\n\n");
+    
     fprintf(file, "CODE ENDS\n");
     fprintf(file, "END MAIN\n");
 
